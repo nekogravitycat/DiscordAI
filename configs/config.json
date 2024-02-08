@@ -1,0 +1,13 @@
+{
+  "init-credits": 1,
+  "init-privilege": 1,
+  "gpt": {
+    "default-sys-prompt": "You  thinker who likes to chat.",
+    "limits": {
+      "prompt-tokens": 650,
+      "sys-prompt-tokens": 500,
+      "reply-tokens": 1500,
+      "history-length": 12
+    }
+  }
+}
