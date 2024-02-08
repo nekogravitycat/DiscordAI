@@ -97,44 +97,44 @@ const PRICINGFILE = "./configs/pricing.json"
 
 func LoadPricingTable() {
 	if _, err := os.Stat(PRICINGFILE); errors.Is(err, os.ErrNotExist) {
-		fmt.Println("No users.json found, creating one.")
+		fmt.Println("No pricing.json found, creating one.")
 		Table = newPricingTable()
 		savePricingTable()
 	}
 
 	jsonFile, err := os.Open(PRICINGFILE)
 	if err != nil {
-		fmt.Println("Error reading user.json")
+		fmt.Println("Error reading pricing.json")
 	}
 	defer jsonFile.Close()
 
 	byteValue, err := io.ReadAll(jsonFile)
 	if err != nil {
-		fmt.Println("Error reading bytes of user.json")
+		fmt.Println("Error reading bytes of pricing.json")
 	}
 
 	err = json.Unmarshal(byteValue, &Table)
 	if err != nil {
-		fmt.Println("Error parsing user.json into Users struct.")
+		fmt.Println("Error parsing pricing.json into pricingTable struct.")
 	}
 }
 
 func savePricingTable() {
 	jsonFile, err := os.Create(PRICINGFILE)
 	if err != nil {
-		fmt.Println("Error writing user.json")
+		fmt.Println("Error writing pricing.json")
 		return
 	}
 	defer jsonFile.Close()
 
 	jsonData, err := json.MarshalIndent(Table, "", "  ")
 	if err != nil {
-		fmt.Println("Error parsing Users struct into json data.")
+		fmt.Println("Error parsing pricingTable struct into json data.")
 		return
 	}
 
 	_, err = jsonFile.Write(jsonData)
 	if err != nil {
-		fmt.Println("Error writing user.json file.")
+		fmt.Println("Error writing pricing.json file.")
 	}
 }
