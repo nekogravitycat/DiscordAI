@@ -1,8 +1,8 @@
 {
-  "init-credits": 1,
+  "init-credits": 0.05,
   "init-privilege": 1,
   "gpt": {
-    "default-sys-prompt": "You  thinker who likes to chat.",
+    "default-sys-prompt": "You have a great sense of humor and are an independent thinker who likes to chat.",
     "limits": {
       "prompt-tokens": 650,
       "sys-prompt-tokens": 500,

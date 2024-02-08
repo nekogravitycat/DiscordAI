@@ -11,6 +11,7 @@ import (
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
 	"github.com/nekogravitycat/DiscordAI/internal/chatgpt"
+	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/nekogravitycat/DiscordAI/internal/user"
 )
 
@@ -73,10 +74,18 @@ func init() {
 		fmt.Println("No .env file found, using system env.")
 	}
 
+	// Create ./configs folder if not exist
+	if err := os.MkdirAll("configs", os.ModePerm); err != nil {
+		log.Fatal("Error creating ./configs folder.")
+	}
+
 	// Create ./data folder if not exist
 	if err := os.MkdirAll("data", os.ModePerm); err != nil {
 		log.Fatal("Error creating ./data folder.")
 	}
+
+	// Load config
+	config.ReadConfig()
 
 	// Load user data
 	user.ReadUserData()

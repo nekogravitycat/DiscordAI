@@ -20,13 +20,15 @@ func AddUser(discordID string, user User) {
 	Users[discordID] = user
 }
 
+const USERFILE = "./data/users.json"
+
 func ReadUserData() {
-	if _, err := os.Stat("./data/users.json"); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(USERFILE); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("No users.json found, creating one.")
 		WriteUserData()
 	}
 
-	jsonFile, err := os.Open("./data/users.json")
+	jsonFile, err := os.Open(USERFILE)
 	if err != nil {
 		fmt.Println("Error reading user.json")
 	}
@@ -44,7 +46,7 @@ func ReadUserData() {
 }
 
 func WriteUserData() {
-	jsonFile, err := os.Create("./data/users.json")
+	jsonFile, err := os.Create(USERFILE)
 	if err != nil {
 		fmt.Println("Error writing user.json")
 		return
