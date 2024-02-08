@@ -85,10 +85,10 @@ func init() {
 	}
 
 	// Load config
-	config.ReadConfig()
+	config.LoadConfig()
 
 	// Load user data
-	user.ReadUserData()
+	user.LoadUserData()
 }
 
 func main() {
@@ -132,7 +132,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-quit
 
-	user.WriteUserData()
+	user.SaveUserData()
 
 	// Remove commands before shut down
 	fmt.Println("Removing commands...")

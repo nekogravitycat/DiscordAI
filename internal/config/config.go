@@ -53,11 +53,11 @@ var (
 
 const CONFIGFILE string = "./configs/config.json"
 
-func ReadConfig() {
+func LoadConfig() {
 	if _, err := os.Stat(CONFIGFILE); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("No config.json found, creating one with default values.")
 		config = newMainConfig()
-		writeConfig()
+		saveConfig()
 	}
 
 	jsonFile, err := os.Open(CONFIGFILE)
@@ -81,7 +81,7 @@ func ReadConfig() {
 	GPT = config.GPT
 }
 
-func writeConfig() {
+func saveConfig() {
 	jsonFile, err := os.Create(CONFIGFILE)
 	if err != nil {
 		fmt.Println("Error writing config.json")
