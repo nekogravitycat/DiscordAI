@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pkoukk/tiktoken-go"
 	openai "github.com/sashabaranov/go-openai"
 )
 
@@ -62,14 +63,14 @@ func (g *GPT) trimHistory() {
 	}
 }
 
-func (g *GPT) Generate(model string, user string) (reply string, usage int, err error) {
+func (g *GPT) Generate(model string, user string) (reply string, usage openai.Usage, err error) {
+	fmt.Printf("Model: %s, User: %s\n", model, user)
+
 	if len(g.history) <= 0 {
-		return "", 0, errors.New("empty history")
+		return "", openai.Usage{}, errors.New("empty history")
 	}
 
 	g.trimHistory()
-
-	fmt.Println(g.history)
 
 	response, err := g.client.CreateChatCompletion(
 		context.Background(),
@@ -82,13 +83,25 @@ func (g *GPT) Generate(model string, user string) (reply string, usage int, err 
 	)
 
 	if err != nil {
-		return "```Something went wrong, please try again later.```", 0, err
+		return "```Something went wrong, please try again later.```", openai.Usage{}, err
 	}
 
 	reply = response.Choices[0].Message.Content
-	usage = response.Usage.TotalTokens
+	usage = response.Usage
 
 	g.addReply(reply)
 
+	fmt.Printf("Usage: %d\n", usage)
+
 	return reply, usage, err
+}
+
+func CountToken(prompt string, model string) int {
+	tkm, err := tiktoken.EncodingForModel(model)
+	if err != nil {
+		return 0
+	}
+
+	token := tkm.Encode(prompt, nil, nil)
+	return len(token)
 }

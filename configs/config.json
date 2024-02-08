@@ -4,9 +4,9 @@
   "gpt": {
     "default-sys-prompt": "You have a great sense of humor and are an independent thinker who likes to chat.",
     "limits": {
-      "prompt-tokens": 650,
-      "sys-prompt-tokens": 500,
-      "reply-tokens": 1500,
+      "prompt-tokens": 500,
+      "sys-prompt-tokens": 250,
+      "reply-tokens": 500,
       "history-length": 12
     }
   }

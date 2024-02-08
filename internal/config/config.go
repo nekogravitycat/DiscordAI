@@ -33,9 +33,9 @@ func newMainConfig() mainConfig {
 		GPT: gptConfig{
 			DefaultSysPrompt: "You have a great sense of humor and are an independent thinker who likes to chat.",
 			Limits: gptLimit{
-				PromptTokens:    650,
-				SysPromptTokens: 500,
-				ReplyTokens:     1500,
+				PromptTokens:    500,
+				SysPromptTokens: 250,
+				ReplyTokens:     500,
 				HistoryLength:   12,
 			},
 		},

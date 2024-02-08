@@ -1,4 +1,4 @@
-package user
+package userdata
 
 import (
 	"encoding/json"
@@ -6,18 +6,35 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/nekogravitycat/DiscordAI/internal/config"
+	openai "github.com/sashabaranov/go-openai"
 )
 
-type User struct {
+type UserInfo struct {
 	Model          string  `json:"model"`
 	Credit         float64 `json:"credit"`
 	PrivilegeLevel int     `json:"privilege-level"`
 }
 
-var Users map[string]User
+func NewUserInfo() UserInfo {
+	u := UserInfo{
+		Model:          openai.GPT3Dot5Turbo,
+		Credit:         config.InitCredits,
+		PrivilegeLevel: config.InitPrivilege,
+	}
+	return u
+}
 
-func AddUser(discordID string, user User) {
-	Users[discordID] = user
+var users = map[string]UserInfo{}
+
+func SetUser(discordID string, user UserInfo) {
+	users[discordID] = user
+}
+
+func GetUser(discordID string) (user UserInfo, ok bool) {
+	user, ok = users[discordID]
+	return user, ok
 }
 
 const USERFILE = "./data/users.json"
@@ -25,6 +42,7 @@ const USERFILE = "./data/users.json"
 func LoadUserData() {
 	if _, err := os.Stat(USERFILE); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("No users.json found, creating one.")
+		users["0"] = NewUserInfo()
 		SaveUserData()
 	}
 
@@ -39,7 +57,7 @@ func LoadUserData() {
 		fmt.Println("Error reading bytes of user.json")
 	}
 
-	err = json.Unmarshal(byteValue, &Users)
+	err = json.Unmarshal(byteValue, &users)
 	if err != nil {
 		fmt.Println("Error parsing user.json into Users struct.")
 	}
@@ -53,7 +71,7 @@ func SaveUserData() {
 	}
 	defer jsonFile.Close()
 
-	jsonData, err := json.MarshalIndent(Users, "", "  ")
+	jsonData, err := json.MarshalIndent(users, "", "  ")
 	if err != nil {
 		fmt.Println("Error parsing Users struct into json data.")
 		return
