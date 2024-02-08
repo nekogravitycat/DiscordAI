@@ -28,13 +28,13 @@ func NewUserInfo() UserInfo {
 
 var users = map[string]UserInfo{}
 
-func SetUser(discordID string, user UserInfo) {
-	users[discordID] = user
-}
-
 func GetUser(discordID string) (user UserInfo, ok bool) {
 	user, ok = users[discordID]
 	return user, ok
+}
+
+func SetUser(discordID string, user UserInfo) {
+	users[discordID] = user
 }
 
 const USERFILE = "./data/users.json"
