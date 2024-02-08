@@ -17,7 +17,7 @@ import (
 )
 
 var bot *discord.Session
-var chats = map[string]*Chat{}
+var activeGptChannels = map[string]*gptChannel{}
 
 func init() {
 	// Load enviroment variables from .env file if exist
@@ -119,7 +119,7 @@ func messageCreate(s *discord.Session, m *discord.MessageCreate) {
 		return
 	}
 
-	if _, ok := chats[m.ChannelID]; ok {
+	if _, ok := activeGptChannels[m.ChannelID]; ok {
 		gptReply(s, m)
 	}
 }
@@ -145,7 +145,7 @@ var (
 )
 
 func startChat(s *discord.Session, i *discord.InteractionCreate) {
-	if _, ok := chats[i.ChannelID]; ok {
+	if _, ok := activeGptChannels[i.ChannelID]; ok {
 		s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
 			Type: discord.InteractionResponseChannelMessageWithSource,
 			Data: &discord.InteractionResponseData{
@@ -161,11 +161,11 @@ func startChat(s *discord.Session, i *discord.InteractionCreate) {
 			Content: "Hello!",
 		},
 	})
-	chats[i.ChannelID] = NewChat()
+	activeGptChannels[i.ChannelID] = newGptChannel()
 }
 
 func stopChat(s *discord.Session, i *discord.InteractionCreate) {
-	if _, ok := chats[i.ChannelID]; !ok {
+	if _, ok := activeGptChannels[i.ChannelID]; !ok {
 		s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
 			Type: discord.InteractionResponseChannelMessageWithSource,
 			Data: &discord.InteractionResponseData{
@@ -181,18 +181,18 @@ func stopChat(s *discord.Session, i *discord.InteractionCreate) {
 			Content: "Bye!",
 		},
 	})
-	delete(chats, i.ChannelID)
+	delete(activeGptChannels, i.ChannelID)
 }
 
 // ChatGPT
 
-type Chat struct {
+type gptChannel struct {
 	GPT   chatgpt.GPT
 	queue []*discord.MessageCreate
 }
 
-func NewChat() *Chat {
-	chat := &Chat{
+func newGptChannel() *gptChannel {
+	chat := &gptChannel{
 		GPT:   chatgpt.NewGPT(),
 		queue: []*discord.MessageCreate{},
 	}
@@ -210,10 +210,10 @@ func gptReply(s *discord.Session, m *discord.MessageCreate) {
 		return
 	}
 
-	chats[m.ChannelID].QueueMessage(m)
+	activeGptChannels[m.ChannelID].QueueMessage(m)
 }
 
-func (c *Chat) QueueMessage(m *discord.MessageCreate) {
+func (c *gptChannel) QueueMessage(m *discord.MessageCreate) {
 	c.queue = append(c.queue, m)
 	if len(c.queue) == 1 {
 		c.replyNext()
@@ -226,7 +226,7 @@ func handleReplyError(err error) {
 	}
 }
 
-func (c *Chat) replyNext() {
+func (c *gptChannel) replyNext() {
 	if len(c.queue) <= 0 {
 		return
 	}
