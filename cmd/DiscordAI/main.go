@@ -10,7 +10,6 @@ import (
 
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
-	"github.com/nekogravitycat/DiscordAI/internal/chatgpt"
 	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/nekogravitycat/DiscordAI/internal/pricing"
 	"github.com/nekogravitycat/DiscordAI/internal/userdata"
@@ -31,10 +30,6 @@ func init() {
 		fmt.Println("No .env file found, using system env.")
 	}
 
-	// Set enviroment variable for tiktoken-go cache
-	wd, _ := os.Getwd()
-	os.Setenv("TIKTOKEN_CACHE_DIR", wd+"/tiktokenCache/")
-
 	// Create ./configs folder if not exist
 	if err := os.MkdirAll("configs", os.ModePerm); err != nil {
 		log.Fatal("Error creating ./configs folder.")
@@ -43,11 +38,6 @@ func init() {
 	// Create ./data folder if not exist
 	if err := os.MkdirAll("data", os.ModePerm); err != nil {
 		log.Fatal("Error creating ./data folder.")
-	}
-
-	// Create ./data folder if not exist
-	if err := os.MkdirAll("tiktokenCache", os.ModePerm); err != nil {
-		log.Fatal("Error creating ./tiktokenCache folder.")
 	}
 
 	// Load config
@@ -115,6 +105,8 @@ func main() {
 	fmt.Println("Bot shut down gracefully.")
 }
 
+// Discord handlers
+
 func messageCreate(s *discord.Session, m *discord.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -130,151 +122,3 @@ func messageCreate(s *discord.Session, m *discord.MessageCreate) {
 		gptReply(s, m)
 	}
 }
-
-func gptReply(s *discord.Session, m *discord.MessageCreate) {
-	user, ok := userdata.GetUser(m.Author.ID)
-	if !ok {
-		userdata.SetUser(m.Author.ID, userdata.NewUserInfo())
-	}
-
-	if chatgpt.CountToken(m.Content, user.Model) > config.GPT.Limits.PromptTokens {
-		s.ChannelMessageSendReply(m.ChannelID, "Prompt too long.", m.Reference())
-		return
-	}
-
-	chats[m.ChannelID].QueueMessage(m)
-}
-
-// ChatGPT
-
-type Chat struct {
-	GPT   chatgpt.GPT
-	queue []*discord.MessageCreate
-}
-
-func NewChat() *Chat {
-	chat := &Chat{
-		GPT:   chatgpt.NewGPT(),
-		queue: []*discord.MessageCreate{},
-	}
-	return chat
-}
-
-func (c *Chat) QueueMessage(m *discord.MessageCreate) {
-	c.queue = append(c.queue, m)
-	if len(c.queue) == 1 {
-		c.replyNext()
-	}
-}
-
-func handleReplyError(err error) {
-	if err != nil {
-		fmt.Println("Error replying: " + err.Error())
-	}
-}
-
-func (c *Chat) replyNext() {
-	if len(c.queue) <= 0 {
-		return
-	}
-
-	m := c.queue[0]
-
-	user, _ := userdata.GetUser(m.Author.ID)
-
-	// Remove prefixs
-	trim1 := strings.TrimPrefix(m.Content, "!")
-	trim2 := strings.TrimPrefix(trim1, "！")
-
-	c.GPT.AddMessage(trim2)
-
-	if m.Content == trim2 {
-		if user.Credit <= 0 {
-			bot.ChannelMessageSendReply(m.ChannelID, "Not enough credits.", m.Reference())
-
-		} else {
-			bot.ChannelTyping(m.ChannelID)
-			reply, usage, _ := c.GPT.Generate("gpt-3.5-turbo", m.Author.ID)
-
-			// Segment the reply if its longer than 2000 characters
-			for len(reply) > 2000 {
-				_, err := bot.ChannelMessageSendReply(m.ChannelID, reply[:2000], m.Reference())
-				handleReplyError(err)
-				reply = reply[2000:]
-			}
-
-			_, err := bot.ChannelMessageSendReply(m.ChannelID, reply, m.Reference())
-			handleReplyError(err)
-
-			user.Credit -= pricing.GetGPTCost(user.Model, usage)
-			fmt.Printf("User credits: %f\n", user.Credit)
-
-			userdata.SetUser(m.Author.ID, user)
-			userdata.SaveUserData()
-		}
-	}
-	// else stack prompts if they start with "!"
-
-	c.queue = c.queue[1:]
-	c.replyNext()
-}
-
-// Slash commands
-
-func startChat(s *discord.Session, i *discord.InteractionCreate) {
-	if _, ok := chats[i.ChannelID]; ok {
-		s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-			Type: discord.InteractionResponseChannelMessageWithSource,
-			Data: &discord.InteractionResponseData{
-				Content: "Already in chat",
-			},
-		})
-		return
-	}
-
-	s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-		Type: discord.InteractionResponseChannelMessageWithSource,
-		Data: &discord.InteractionResponseData{
-			Content: "Hello!",
-		},
-	})
-	chats[i.ChannelID] = NewChat()
-}
-
-func stopChat(s *discord.Session, i *discord.InteractionCreate) {
-	if _, ok := chats[i.ChannelID]; !ok {
-		s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-			Type: discord.InteractionResponseChannelMessageWithSource,
-			Data: &discord.InteractionResponseData{
-				Content: "Not in channel",
-			},
-		})
-		return
-	}
-
-	s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-		Type: discord.InteractionResponseChannelMessageWithSource,
-		Data: &discord.InteractionResponseData{
-			Content: "Bye!",
-		},
-	})
-	delete(chats, i.ChannelID)
-}
-
-var (
-	commands = []*discord.ApplicationCommand{
-		{
-			Name:        "start",
-			Description: "Start ChatGPT on this channel",
-		},
-		{
-			Name:        "stop",
-			Description: "Stop ChatGPT on this channel",
-		},
-	}
-
-	commandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
-		"start": startChat,
-		"stop":  stopChat,
-	}
-)

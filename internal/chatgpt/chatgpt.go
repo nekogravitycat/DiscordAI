@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/pkoukk/tiktoken-go"
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -63,6 +64,14 @@ func (g *GPT) trimHistory() {
 	}
 }
 
+func (g *GPT) downgradeHistoryImages() {
+	for i, msg := range g.history {
+		if msg.MultiContent != nil {
+			g.history[i].MultiContent[0].ImageURL.Detail = openai.ImageURLDetailLow
+		}
+	}
+}
+
 func (g *GPT) Generate(model string, user string) (reply string, usage openai.Usage, err error) {
 	fmt.Printf("Model: %s, User: %s\n", model, user)
 
@@ -71,6 +80,7 @@ func (g *GPT) Generate(model string, user string) (reply string, usage openai.Us
 	}
 
 	g.trimHistory()
+	g.downgradeHistoryImages()
 
 	response, err := g.client.CreateChatCompletion(
 		context.Background(),
@@ -78,7 +88,7 @@ func (g *GPT) Generate(model string, user string) (reply string, usage openai.Us
 			Model:     model,
 			Messages:  g.history,
 			User:      user,
-			MaxTokens: 1500,
+			MaxTokens: config.GPT.Limits.ReplyTokens,
 		},
 	)
 
