@@ -13,7 +13,7 @@ import (
 
 type UserInfo struct {
 	Model          string  `json:"model"`
-	Credit         float64 `json:"credit"`
+	Credit         float32 `json:"credit"`
 	PrivilegeLevel int     `json:"privilege-level"`
 }
 

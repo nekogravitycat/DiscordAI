@@ -21,7 +21,7 @@ type gptConfig struct {
 }
 
 type mainConfig struct {
-	InitCredits   float64   `json:"init-credits"`
+	InitCredits   float32   `json:"init-credits"`
 	InitPrivilege int       `json:"init-privilege"`
 	GPT           gptConfig `json:"gpt"`
 }
@@ -46,7 +46,7 @@ func newMainConfig() mainConfig {
 var config mainConfig
 
 var (
-	InitCredits   float64
+	InitCredits   float32
 	InitPrivilege int
 	GPT           gptConfig
 )

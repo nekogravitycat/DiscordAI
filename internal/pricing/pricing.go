@@ -11,14 +11,14 @@ import (
 )
 
 type gptPricing struct {
-	Input  float64 `json:"input"`
-	Output float64 `json:"output"`
+	Input  float32 `json:"input"`
+	Output float32 `json:"output"`
 }
 
 type dallE3Resolutions struct {
-	R1024X1024 float64 `json:"r1024x1024"`
-	R1024X1792 float64 `json:"r1024x1792"`
-	R1792X1024 float64 `json:"r1792x1024"`
+	R1024X1024 float32 `json:"r1024x1024"`
+	R1024X1792 float32 `json:"r1024x1792"`
+	R1792X1024 float32 `json:"r1792x1024"`
 }
 
 type dallE3Pricing struct {
@@ -26,9 +26,9 @@ type dallE3Pricing struct {
 	Hd       dallE3Resolutions `json:"hd"`
 }
 type dallE2Pricing struct {
-	R1024X1024 float64 `json:"r1024x1024"`
-	R512X512   float64 `json:"r512x512"`
-	R256X256   float64 `json:"r256x256"`
+	R1024X1024 float32 `json:"r1024x1024"`
+	R512X512   float32 `json:"r512x512"`
+	R256X256   float32 `json:"r256x256"`
 }
 
 type pricingTable struct {
@@ -76,20 +76,20 @@ func newPricingTable() pricingTable {
 
 var Table pricingTable
 
-func GetGPTCost(model string, usage openai.Usage) float64 {
+func GetGPTCost(model string, usage openai.Usage) float32 {
 	switch model {
 	case openai.GPT4TurboPreview:
-		return float64(usage.PromptTokens)/1000*Table.Gpt4TurboPreview.Input +
-			float64(usage.CompletionTokens)/1000*Table.Gpt4TurboPreview.Output
+		return float32(usage.PromptTokens)/1000*Table.Gpt4TurboPreview.Input +
+			float32(usage.CompletionTokens)/1000*Table.Gpt4TurboPreview.Output
 	case openai.GPT4VisionPreview:
-		return float64(usage.PromptTokens)/1000*Table.Gpt4VisionPreview.Input +
-			float64(usage.CompletionTokens)/1000*Table.Gpt4VisionPreview.Output
+		return float32(usage.PromptTokens)/1000*Table.Gpt4VisionPreview.Input +
+			float32(usage.CompletionTokens)/1000*Table.Gpt4VisionPreview.Output
 	case openai.GPT3Dot5Turbo:
-		return float64(usage.PromptTokens)/1000*Table.Gpt3Dot5Turbo.Input +
-			float64(usage.CompletionTokens)/1000*Table.Gpt3Dot5Turbo.Output
+		return float32(usage.PromptTokens)/1000*Table.Gpt3Dot5Turbo.Input +
+			float32(usage.CompletionTokens)/1000*Table.Gpt3Dot5Turbo.Output
 	default:
-		return float64(usage.PromptTokens)/1000*Table.Gpt4TurboPreview.Input +
-			float64(usage.CompletionTokens)/1000*Table.Gpt4TurboPreview.Output
+		return float32(usage.PromptTokens)/1000*Table.Gpt4TurboPreview.Input +
+			float32(usage.CompletionTokens)/1000*Table.Gpt4TurboPreview.Output
 	}
 }
 
