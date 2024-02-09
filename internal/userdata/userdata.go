@@ -1,15 +1,12 @@
 package userdata
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"os"
 	"slices"
 	"strconv"
 
 	"github.com/nekogravitycat/DiscordAI/internal/config"
+	"github.com/nekogravitycat/DiscordAI/internal/jsondata"
 	openai "github.com/sashabaranov/go-openai"
 )
 
@@ -38,7 +35,7 @@ func (u UserInfo) HasPrivilege(model string) bool {
 	return slices.Contains(c.Models, model)
 }
 
-var users = map[string]UserInfo{}
+var users = map[string]UserInfo{"0": NewUserInfo()}
 
 func GetUser(discordID string) (user UserInfo, ok bool) {
 	user, ok = users[discordID]
@@ -52,45 +49,10 @@ func SetUser(discordID string, user UserInfo) {
 const USERFILE = "./data/users.json"
 
 func LoadUserData() {
-	if _, err := os.Stat(USERFILE); errors.Is(err, os.ErrNotExist) {
-		fmt.Println("No users.json found, creating one.")
-		users["0"] = NewUserInfo()
-		SaveUserData()
-	}
-
-	jsonFile, err := os.Open(USERFILE)
-	if err != nil {
-		fmt.Println("Error reading user.json")
-	}
-	defer jsonFile.Close()
-
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		fmt.Println("Error reading bytes of user.json")
-	}
-
-	err = json.Unmarshal(byteValue, &users)
-	if err != nil {
-		fmt.Println("Error parsing user.json into Users struct.")
-	}
+	jsondata.Check(USERFILE, users)
+	jsondata.Load(USERFILE, &users)
 }
 
 func SaveUserData() {
-	jsonFile, err := os.Create(USERFILE)
-	if err != nil {
-		fmt.Println("Error writing user.json")
-		return
-	}
-	defer jsonFile.Close()
-
-	jsonData, err := json.MarshalIndent(users, "", "  ")
-	if err != nil {
-		fmt.Println("Error parsing Users struct into json data.")
-		return
-	}
-
-	_, err = jsonFile.Write(jsonData)
-	if err != nil {
-		fmt.Println("Error writing user.json file.")
-	}
+	jsondata.Save(USERFILE, users)
 }

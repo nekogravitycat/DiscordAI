@@ -1,12 +1,7 @@
 package pricing
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"os"
-
+	"github.com/nekogravitycat/DiscordAI/internal/jsondata"
 	"github.com/sashabaranov/go-openai"
 )
 
@@ -74,67 +69,28 @@ func newPricingTable() pricingTable {
 	return pt
 }
 
-var Table pricingTable
+var pricingData pricingTable = newPricingTable()
 
 func GetGPTCost(model string, usage openai.Usage) float32 {
 	switch model {
 	case openai.GPT4TurboPreview:
-		return float32(usage.PromptTokens)/1000*Table.Gpt4TurboPreview.Input +
-			float32(usage.CompletionTokens)/1000*Table.Gpt4TurboPreview.Output
+		return float32(usage.PromptTokens)/1000*pricingData.Gpt4TurboPreview.Input +
+			float32(usage.CompletionTokens)/1000*pricingData.Gpt4TurboPreview.Output
 	case openai.GPT4VisionPreview:
-		return float32(usage.PromptTokens)/1000*Table.Gpt4VisionPreview.Input +
-			float32(usage.CompletionTokens)/1000*Table.Gpt4VisionPreview.Output
+		return float32(usage.PromptTokens)/1000*pricingData.Gpt4VisionPreview.Input +
+			float32(usage.CompletionTokens)/1000*pricingData.Gpt4VisionPreview.Output
 	case openai.GPT3Dot5Turbo:
-		return float32(usage.PromptTokens)/1000*Table.Gpt3Dot5Turbo.Input +
-			float32(usage.CompletionTokens)/1000*Table.Gpt3Dot5Turbo.Output
+		return float32(usage.PromptTokens)/1000*pricingData.Gpt3Dot5Turbo.Input +
+			float32(usage.CompletionTokens)/1000*pricingData.Gpt3Dot5Turbo.Output
 	default:
-		return float32(usage.PromptTokens)/1000*Table.Gpt4TurboPreview.Input +
-			float32(usage.CompletionTokens)/1000*Table.Gpt4TurboPreview.Output
+		return float32(usage.PromptTokens)/1000*pricingData.Gpt4TurboPreview.Input +
+			float32(usage.CompletionTokens)/1000*pricingData.Gpt4TurboPreview.Output
 	}
 }
 
 const PRICINGFILE = "./configs/pricing.json"
 
 func LoadPricingTable() {
-	if _, err := os.Stat(PRICINGFILE); errors.Is(err, os.ErrNotExist) {
-		fmt.Println("No pricing.json found, creating one.")
-		Table = newPricingTable()
-		savePricingTable()
-	}
-
-	jsonFile, err := os.Open(PRICINGFILE)
-	if err != nil {
-		fmt.Println("Error reading pricing.json")
-	}
-	defer jsonFile.Close()
-
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		fmt.Println("Error reading bytes of pricing.json")
-	}
-
-	err = json.Unmarshal(byteValue, &Table)
-	if err != nil {
-		fmt.Println("Error parsing pricing.json into pricingTable struct.")
-	}
-}
-
-func savePricingTable() {
-	jsonFile, err := os.Create(PRICINGFILE)
-	if err != nil {
-		fmt.Println("Error writing pricing.json")
-		return
-	}
-	defer jsonFile.Close()
-
-	jsonData, err := json.MarshalIndent(Table, "", "  ")
-	if err != nil {
-		fmt.Println("Error parsing pricingTable struct into json data.")
-		return
-	}
-
-	_, err = jsonFile.Write(jsonData)
-	if err != nil {
-		fmt.Println("Error writing pricing.json file.")
-	}
+	jsondata.Check(PRICINGFILE, pricingData)
+	jsondata.Load(PRICINGFILE, &pricingData)
 }

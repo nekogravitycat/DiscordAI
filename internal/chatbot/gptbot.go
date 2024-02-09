@@ -1,16 +1,13 @@
 package chatbot
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"os"
 	"strings"
 
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/nekogravitycat/DiscordAI/internal/gpt"
+	"github.com/nekogravitycat/DiscordAI/internal/jsondata"
 	"github.com/nekogravitycat/DiscordAI/internal/pricing"
 	"github.com/nekogravitycat/DiscordAI/internal/userdata"
 )
@@ -35,7 +32,7 @@ func gptReply(s *discord.Session, m *discord.MessageCreate) {
 	}
 
 	if gpt.CountToken(m.Content, user.Model) > config.GPT.Limits.PromptTokens {
-		messageReply(s, m, "Prompt too long.")
+		messageReply(s, m, "Prompt too long")
 		return
 	}
 
@@ -97,50 +94,15 @@ func (c *gptChannel) replyNext() {
 	c.replyNext()
 }
 
-var gptChannelData = map[string]gpt.GPT{}
+var gptChannelData = map[string]gpt.GPT{"0": gpt.NewGPT()}
 
 const GPTCHANNELFILE = "./data/gptchannels.json"
 
 func LoadGptChannels() {
-	if _, err := os.Stat(GPTCHANNELFILE); errors.Is(err, os.ErrNotExist) {
-		fmt.Println("No gptchannels.json found, creating one.")
-		gptChannelData["0"] = gpt.NewGPT()
-		saveGptChannels()
-	}
-
-	jsonFile, err := os.Open(GPTCHANNELFILE)
-	if err != nil {
-		fmt.Println("Error reading gptchannels.json")
-	}
-	defer jsonFile.Close()
-
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		fmt.Println("Error reading bytes of gptchannels.json")
-	}
-
-	err = json.Unmarshal(byteValue, &gptChannelData)
-	if err != nil {
-		fmt.Println("Error parsing gptchannels.json into GPT struct.")
-	}
+	jsondata.Check(GPTCHANNELFILE, gptChannelData)
+	jsondata.Load(GPTCHANNELFILE, &gptChannelData)
 }
 
 func saveGptChannels() {
-	jsonFile, err := os.Create(GPTCHANNELFILE)
-	if err != nil {
-		fmt.Println("Error writing gptchannels.json")
-		return
-	}
-	defer jsonFile.Close()
-
-	jsonData, err := json.MarshalIndent(gptChannelData, "", "  ")
-	if err != nil {
-		fmt.Println("Error parsing Users struct into json data.")
-		return
-	}
-
-	_, err = jsonFile.Write(jsonData)
-	if err != nil {
-		fmt.Println("Error writing gptchannels.json file.")
-	}
+	jsondata.Save(GPTCHANNELFILE, gptChannelData)
 }
