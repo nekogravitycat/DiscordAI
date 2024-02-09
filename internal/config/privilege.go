@@ -22,7 +22,7 @@ func newPrivilegeConfig() privilegeConfig {
 
 var privileges = map[string]privilegeConfig{}
 
-func GetPrivilegeDetailConfig(level int) (c privilegeConfig, ok bool) {
+func GetPrivilegeConfig(level int) (c privilegeConfig, ok bool) {
 	c, ok = privileges[strconv.Itoa(level)]
 	return c, ok
 }

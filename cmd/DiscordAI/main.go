@@ -14,7 +14,7 @@ import (
 
 func init() {
 	// Load enviroment variables from .env file if exist
-	if _, err := os.Stat(".env"); err == nil {
+	if _, err := os.Stat("./.env"); err == nil {
 		fmt.Println(".env file found.")
 		err = godotenv.Load()
 		if err != nil {
@@ -25,23 +25,22 @@ func init() {
 	}
 
 	// Create ./configs folder if not exist
-	if err := os.MkdirAll("configs", os.ModePerm); err != nil {
+	if err := os.MkdirAll("./configs", os.ModePerm); err != nil {
 		log.Fatal("Error creating ./configs folder.")
 	}
 
 	// Create ./data folder if not exist
-	if err := os.MkdirAll("data", os.ModePerm); err != nil {
+	if err := os.MkdirAll("./data", os.ModePerm); err != nil {
 		log.Fatal("Error creating ./data folder.")
 	}
 
-	// Load config
 	config.LoadConfig()
 
-	// Load user data
 	userdata.LoadUserData()
 
-	// Load pricing table
 	pricing.LoadPricingTable()
+
+	chatbot.LoadGptChannels()
 }
 
 func main() {

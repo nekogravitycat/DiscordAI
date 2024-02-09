@@ -58,6 +58,8 @@ func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
 		},
 	})
 	activeGptChannels[i.ChannelID] = newGptChannel()
+	gptChannelData[i.ChannelID] = activeGptChannels[i.ChannelID].GPT
+	saveGptChannels()
 }
 
 func deactivateGPT(s *discord.Session, i *discord.InteractionCreate) {
@@ -78,6 +80,8 @@ func deactivateGPT(s *discord.Session, i *discord.InteractionCreate) {
 		},
 	})
 	delete(activeGptChannels, i.ChannelID)
+	delete(gptChannelData, i.ChannelID)
+	saveGptChannels()
 }
 
 func credits(s *discord.Session, i *discord.InteractionCreate) {

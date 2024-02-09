@@ -41,7 +41,7 @@ func Run() {
 	fmt.Println("Adding commands...")
 	registeredCommands = make([]*discord.ApplicationCommand, len(commands))
 	for i, v := range commands {
-		cmd, err := bot.ApplicationCommandCreate(bot.State.User.ID, "", v)
+		cmd, err := bot.ApplicationCommandCreate(bot.State.User.ID, "987988090528366602", v)
 		if err != nil {
 			fmt.Println("Error creating command: " + v.Name)
 			fmt.Println(err.Error())
@@ -64,7 +64,7 @@ func Stop() {
 	// Remove commands before shut down
 	fmt.Println("Removing commands...")
 	for _, v := range registeredCommands {
-		err := bot.ApplicationCommandDelete(bot.State.User.ID, "", v.ID)
+		err := bot.ApplicationCommandDelete(bot.State.User.ID, "987988090528366602", v.ID)
 		if err != nil {
 			fmt.Println("Error deleting slash command: " + v.Name)
 		}
@@ -86,7 +86,17 @@ func messageCreate(s *discord.Session, m *discord.MessageCreate) {
 		return
 	}
 
-	if _, ok := activeGptChannels[m.ChannelID]; ok {
+	_, isActiveGptChannel := activeGptChannels[m.ChannelID]
+
+	if !isActiveGptChannel {
+		if cd, wasActive := gptChannelData[m.ChannelID]; wasActive {
+			activeGptChannels[m.ChannelID] = newGptChannel()
+			activeGptChannels[m.ChannelID].GPT.SysPrompt = cd.SysPrompt
+			isActiveGptChannel = true
+		}
+	}
+
+	if isActiveGptChannel {
 		gptReply(s, m)
 	}
 }

@@ -29,7 +29,7 @@ func NewUserInfo() UserInfo {
 }
 
 func (u UserInfo) HasPrivilege(model string) bool {
-	c, ok := config.GetPrivilegeDetailConfig(u.PrivilegeLevel)
+	c, ok := config.GetPrivilegeConfig(u.PrivilegeLevel)
 	if !ok {
 		fmt.Println("Unrecognized privilege level: " + strconv.Itoa(u.PrivilegeLevel))
 		return false

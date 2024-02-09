@@ -13,14 +13,14 @@ import (
 
 type GPT struct {
 	client    openai.Client
-	SysPrompt string
+	SysPrompt string `json:"sys-prompt"`
 	history   []openai.ChatCompletionMessage
 }
 
 func NewGPT() GPT {
 	gpt := GPT{
 		client:    *openai.NewClient(os.Getenv("OPENAI_TOKEN")),
-		SysPrompt: "You are a helpful assistant",
+		SysPrompt: "You have a great sense of humor and are an independent thinker who likes to chat.",
 		history:   []openai.ChatCompletionMessage{},
 	}
 	return gpt
@@ -48,6 +48,14 @@ func (g *GPT) AddImage(imageURL string, imageDetail string) {
 		},
 	}
 	g.history = append(g.history, msg)
+}
+
+func (g *GPT) sysPromptMsg() []openai.ChatCompletionMessage {
+	sys := openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleSystem,
+		Content: g.SysPrompt,
+	}
+	return []openai.ChatCompletionMessage{sys}
 }
 
 func (g *GPT) addReply(reply string) {
@@ -86,7 +94,7 @@ func (g *GPT) Generate(model string, user string) (reply string, usage openai.Us
 		context.Background(),
 		openai.ChatCompletionRequest{
 			Model:     model,
-			Messages:  g.history,
+			Messages:  append(g.sysPromptMsg(), g.history...),
 			User:      user,
 			MaxTokens: config.GPT.Limits.ReplyTokens,
 		},
