@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
+	"strconv"
 
 	"github.com/nekogravitycat/DiscordAI/internal/config"
 	openai "github.com/sashabaranov/go-openai"
@@ -24,6 +26,16 @@ func NewUserInfo() UserInfo {
 		PrivilegeLevel: config.InitPrivilege,
 	}
 	return u
+}
+
+func (u UserInfo) HasPrivilege(model string) bool {
+	c, ok := config.GetPrivilegeDetailConfig(u.PrivilegeLevel)
+	if !ok {
+		fmt.Println("Unrecognized privilege level: " + strconv.Itoa(u.PrivilegeLevel))
+		return false
+	}
+
+	return slices.Contains(c.Models, model)
 }
 
 var users = map[string]UserInfo{}

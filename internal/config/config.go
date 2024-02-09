@@ -79,6 +79,8 @@ func LoadConfig() {
 	InitCredits = config.InitCredits
 	InitPrivilege = config.InitPrivilege
 	GPT = config.GPT
+
+	loadPrivilegeConfig()
 }
 
 func saveConfig() {
@@ -99,4 +101,6 @@ func saveConfig() {
 	if err != nil {
 		fmt.Println("Error writing config.json file.")
 	}
+
+	savePrivilegeConfig()
 }

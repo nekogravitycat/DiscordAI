@@ -10,7 +10,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-type gptPricing struct {
+type gptRate struct {
 	Input  float32 `json:"input"`
 	Output float32 `json:"output"`
 }
@@ -32,24 +32,24 @@ type dallE2Pricing struct {
 }
 
 type pricingTable struct {
-	Gpt4TurboPreview  gptPricing    `json:"gpt-4-turbo-preview"`
-	Gpt4VisionPreview gptPricing    `json:"gpt-4-vision-preview"`
-	Gpt3Dot5Turbo     gptPricing    `json:"gpt-3.5-turbo"`
+	Gpt4TurboPreview  gptRate       `json:"gpt-4-turbo-preview"`
+	Gpt4VisionPreview gptRate       `json:"gpt-4-vision-preview"`
+	Gpt3Dot5Turbo     gptRate       `json:"gpt-3.5-turbo"`
 	DallE3            dallE3Pricing `json:"dall-e-3"`
 	DallE2            dallE2Pricing `json:"dall-e-2"`
 }
 
 func newPricingTable() pricingTable {
 	pt := pricingTable{
-		Gpt4TurboPreview: gptPricing{
+		Gpt4TurboPreview: gptRate{
 			Input:  0.01,
 			Output: 0.03,
 		},
-		Gpt4VisionPreview: gptPricing{
+		Gpt4VisionPreview: gptRate{
 			Input:  0.01,
 			Output: 0.03,
 		},
-		Gpt3Dot5Turbo: gptPricing{
+		Gpt3Dot5Turbo: gptRate{
 			Input:  0.0005,
 			Output: 0.0015,
 		},

@@ -70,9 +70,12 @@ func (c *gptChannel) replyNext() {
 		if user.Credit <= 0 {
 			bot.ChannelMessageSendReply(m.ChannelID, "Not enough credits.", m.Reference())
 
+		} else if !user.HasPrivilege(user.Model) {
+			bot.ChannelMessageSendReply(m.ChannelID, "Permission denied. Please switch to other models.", m.Reference())
+
 		} else {
 			bot.ChannelTyping(m.ChannelID)
-			reply, usage, _ := c.GPT.Generate("gpt-3.5-turbo", m.Author.ID)
+			reply, usage, _ := c.GPT.Generate(user.Model, m.Author.ID)
 
 			// Segment the reply if its longer than 2000 characters
 			for len(reply) > 2000 {
