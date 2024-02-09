@@ -43,7 +43,7 @@ func Save(file string, data any) {
 
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		fmt.Println("Error parsing data into json.")
+		fmt.Printf("Error parsing data into '%s'\n", file)
 		return
 	}
 
