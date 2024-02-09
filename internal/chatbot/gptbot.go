@@ -35,7 +35,7 @@ func gptReply(s *discord.Session, m *discord.MessageCreate) {
 	}
 
 	if gpt.CountToken(m.Content, user.Model) > config.GPT.Limits.PromptTokens {
-		s.ChannelMessageSendReply(m.ChannelID, "Prompt too long.", m.Reference())
+		messageReply(s, m, "Prompt too long.")
 		return
 	}
 
@@ -66,10 +66,10 @@ func (c *gptChannel) replyNext() {
 		user, _ := userdata.GetUser(m.Author.ID)
 
 		if user.Credit <= 0 {
-			bot.ChannelMessageSendReply(m.ChannelID, "Not enough credits.", m.Reference())
+			messageReply(bot, m, "Not enough credits.")
 
 		} else if !user.HasPrivilege(user.Model) {
-			bot.ChannelMessageSendReply(m.ChannelID, "Permission denied. Please switch to other models.", m.Reference())
+			messageReply(bot, m, "Permission denied. Please switch to other models.")
 
 		} else {
 			bot.ChannelTyping(m.ChannelID)
@@ -77,11 +77,11 @@ func (c *gptChannel) replyNext() {
 
 			// Segment the reply if its longer than 2000 characters
 			for len(reply) > 2000 {
-				bot.ChannelMessageSendReply(m.ChannelID, reply[:2000], m.Reference())
+				messageReply(bot, m, reply[:2000])
 				reply = reply[2000:]
 			}
 
-			bot.ChannelMessageSendReply(m.ChannelID, reply, m.Reference())
+			messageReply(bot, m, reply)
 
 			// Update userdata to follow up possible simultaneous operations
 			user, _ := userdata.GetUser(m.Author.ID)

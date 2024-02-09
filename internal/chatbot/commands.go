@@ -42,21 +42,11 @@ var (
 
 func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
 	if _, ok := activeGptChannels[i.ChannelID]; ok {
-		s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-			Type: discord.InteractionResponseChannelMessageWithSource,
-			Data: &discord.InteractionResponseData{
-				Content: "Already in chat",
-			},
-		})
+		interactionRespond(s, i, "Already in chat")
 		return
 	}
 
-	s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-		Type: discord.InteractionResponseChannelMessageWithSource,
-		Data: &discord.InteractionResponseData{
-			Content: "Hello!",
-		},
-	})
+	interactionRespond(s, i, "Hello!")
 	activeGptChannels[i.ChannelID] = newGptChannel()
 	gptChannelData[i.ChannelID] = activeGptChannels[i.ChannelID].GPT
 	saveGptChannels()
@@ -64,21 +54,12 @@ func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
 
 func deactivateGPT(s *discord.Session, i *discord.InteractionCreate) {
 	if _, ok := activeGptChannels[i.ChannelID]; !ok {
-		s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-			Type: discord.InteractionResponseChannelMessageWithSource,
-			Data: &discord.InteractionResponseData{
-				Content: "Not in channel",
-			},
-		})
+
+		interactionRespond(s, i, "Not in channel")
 		return
 	}
 
-	s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-		Type: discord.InteractionResponseChannelMessageWithSource,
-		Data: &discord.InteractionResponseData{
-			Content: "Bye!",
-		},
-	})
+	interactionRespond(s, i, "Bye!")
 	delete(activeGptChannels, i.ChannelID)
 	delete(gptChannelData, i.ChannelID)
 	saveGptChannels()
@@ -93,11 +74,5 @@ func credits(s *discord.Session, i *discord.InteractionCreate) {
 		credits = config.InitCredits
 	}
 
-	s.InteractionRespond(i.Interaction, &discord.InteractionResponse{
-		Type: discord.InteractionResponseChannelMessageWithSource,
-		Data: &discord.InteractionResponseData{
-			Flags:   discord.MessageFlagsEphemeral,
-			Content: fmt.Sprintf("%.5f", credits),
-		},
-	})
+	interactionRespondEphemeral(s, i, fmt.Sprintf("%.5f", credits))
 }
