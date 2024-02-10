@@ -66,8 +66,9 @@ func deactivateGPT(s *discord.Session, i *discord.InteractionCreate) {
 }
 
 func credits(s *discord.Session, i *discord.InteractionCreate) {
-	user, ok := userdata.GetUser(i.Message.Author.ID)
-	var credits float32
+	user, ok := userdata.GetUser(i.Member.User.ID)
+	var credits float32 = 0
+
 	if ok {
 		credits = user.Credit
 	} else {
