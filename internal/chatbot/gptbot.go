@@ -13,7 +13,7 @@ import (
 )
 
 type gptChannel struct {
-	GPT   gpt.GPT
+	GPT   gpt.GPT `json:"gpt"`
 	queue []*discord.MessageCreate
 }
 
@@ -94,15 +94,23 @@ func (c *gptChannel) replyNext() {
 	c.replyNext()
 }
 
-var gptChannelData = map[string]gpt.GPT{"0": gpt.NewGPT()}
+func isActiveGptChannel(channelID string) bool {
+	_, isActive := activeGptChannels[channelID]
+	return isActive
+}
 
 const GPTCHANNELFILE = "./data/gptchannels.json"
 
 func LoadGptChannels() {
-	jsondata.Check(GPTCHANNELFILE, gptChannelData)
-	jsondata.Load(GPTCHANNELFILE, &gptChannelData)
+	jsondata.Check(GPTCHANNELFILE, activeGptChannels)
+	jsondata.Load(GPTCHANNELFILE, &activeGptChannels)
+	for chId, ch := range activeGptChannels {
+		sysPromptData := ch.GPT.SysPrompt
+		activeGptChannels[chId] = newGptChannel()
+		activeGptChannels[chId].GPT.SysPrompt = sysPromptData
+	}
 }
 
 func saveGptChannels() {
-	jsondata.Save(GPTCHANNELFILE, gptChannelData)
+	jsondata.Save(GPTCHANNELFILE, activeGptChannels)
 }

@@ -4,8 +4,8 @@ import (
 	discord "github.com/bwmarrin/discordgo"
 )
 
-func messageReply(session *discord.Session, messageCreate *discord.MessageCreate, content string) {
-	session.ChannelMessageSendReply(messageCreate.ChannelID, content, messageCreate.Reference())
+func messageReply(session *discord.Session, messageCreate *discord.MessageCreate, content string) (*discord.Message, error) {
+	return session.ChannelMessageSendReply(messageCreate.ChannelID, content, messageCreate.Reference())
 }
 
 func interactionRespond(session *discord.Session, interactionCreate *discord.InteractionCreate, content string) error {
@@ -17,8 +17,8 @@ func interactionRespond(session *discord.Session, interactionCreate *discord.Int
 	})
 }
 
-func interactionRespondEphemeral(session *discord.Session, InteractionCreate *discord.InteractionCreate, content string) {
-	session.InteractionRespond(InteractionCreate.Interaction, &discord.InteractionResponse{
+func interactionRespondEphemeral(session *discord.Session, InteractionCreate *discord.InteractionCreate, content string) error {
+	return session.InteractionRespond(InteractionCreate.Interaction, &discord.InteractionResponse{
 		Type: discord.InteractionResponseChannelMessageWithSource,
 		Data: &discord.InteractionResponseData{
 			Flags:   discord.MessageFlagsEphemeral,

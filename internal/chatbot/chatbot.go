@@ -13,7 +13,7 @@ import (
 )
 
 var bot *discord.Session
-var activeGptChannels = map[string]*gptChannel{}
+var activeGptChannels = map[string]*gptChannel{"0": newGptChannel()}
 var registeredCommands []*discord.ApplicationCommand
 
 func Run() {
@@ -86,17 +86,7 @@ func messageCreate(s *discord.Session, m *discord.MessageCreate) {
 		return
 	}
 
-	_, isActiveGptChannel := activeGptChannels[m.ChannelID]
-
-	if !isActiveGptChannel {
-		if cd, wasActive := gptChannelData[m.ChannelID]; wasActive {
-			activeGptChannels[m.ChannelID] = newGptChannel()
-			activeGptChannels[m.ChannelID].GPT.SysPrompt = cd.SysPrompt
-			isActiveGptChannel = true
-		}
-	}
-
-	if isActiveGptChannel {
+	if isActiveGptChannel(m.ChannelID) {
 		gptReply(s, m)
 	}
 }
