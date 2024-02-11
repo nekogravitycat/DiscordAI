@@ -17,6 +17,11 @@ func newPrivilegeConfig() privilegeConfig {
 
 var privilegeData = map[string]privilegeConfig{"0": newPrivilegeConfig()}
 
+func VaildPrivilegeLevel(level string) bool {
+	_, ok := privilegeData[level]
+	return ok
+}
+
 func GetPrivilegeConfig(level string) (c privilegeConfig, ok bool) {
 	c, ok = privilegeData[level]
 	return c, ok

@@ -117,6 +117,24 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "set-user-privilege",
+			Description: "Set privilege level for the user",
+			Options: []*discord.ApplicationCommandOption{
+				{
+					Type:        discord.ApplicationCommandOptionString,
+					Name:        "user-id",
+					Description: "User ID",
+					Required:    true,
+				},
+				{
+					Type:        discord.ApplicationCommandOptionString,
+					Name:        "privilege-level",
+					Description: "Privilege level",
+					Required:    true,
+				},
+			},
+		},
 	}
 
 	commandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
@@ -131,9 +149,18 @@ var (
 	}
 
 	adminCommandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
-		"add-credits": addCredit,
+		"add-credits":        addCredit,
+		"set-user-privilege": setPrivilege,
 	}
 )
+
+func mapInteractionOptions(options []*discord.ApplicationCommandInteractionDataOption) map[string]*discord.ApplicationCommandInteractionDataOption {
+	optionMap := make(map[string]*discord.ApplicationCommandInteractionDataOption, len(options))
+	for _, opt := range options {
+		optionMap[opt.Name] = opt
+	}
+	return optionMap
+}
 
 func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
 	if isActiveGptChannel(i.ChannelID) {
@@ -207,25 +234,27 @@ func resetGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 }
 
 func setGptModel(s *discord.Session, i *discord.InteractionCreate) {
-	input := i.ApplicationCommandData().Options[0].Value
+	options := i.ApplicationCommandData().Options
+	optionMap := mapInteractionOptions(options)
 
-	if value, ok := input.(string); ok {
+	if inputModel, ok := optionMap["model"]; ok {
+		model := inputModel.StringValue()
 		user, userExist := userdata.GetUser(i.Member.User.ID)
 		if !userExist {
 			user = userdata.SetUser(i.Member.User.ID, userdata.NewUserInfo())
 		}
 
-		if user.HasModelPrivilege(value) {
-			user.Model = value
+		if user.HasModelPrivilege(model) {
+			user.Model = model
 			userdata.SetUser(i.Member.User.ID, user)
 			userdata.SaveUserData()
-			interactionRespondEphemeral(s, i, fmt.Sprintf("GPT model set:\n```%s```", value))
+			interactionRespondEphemeral(s, i, fmt.Sprintf("GPT model set:\n```%s```", model))
 		} else {
 			interactionRespondEphemeral(s, i, modelPermissionDeniedMessage)
 		}
 
 	} else {
-		interactionRespondEphemeral(s, i, "Invaild input.")
+		interactionRespondEphemeral(s, i, "Invaild input for model.")
 	}
 }
 
@@ -252,10 +281,7 @@ func addCredit(s *discord.Session, i *discord.InteractionCreate) {
 	}
 
 	options := i.ApplicationCommandData().Options
-	optionMap := make(map[string]*discord.ApplicationCommandInteractionDataOption, len(options))
-	for _, opt := range options {
-		optionMap[opt.Name] = opt
-	}
+	optionMap := mapInteractionOptions(options)
 
 	inputUserId, ok := optionMap["user-id"]
 	if !ok {
@@ -281,4 +307,50 @@ func addCredit(s *discord.Session, i *discord.InteractionCreate) {
 	userdata.SetUser(userId, user)
 	userdata.SaveUserData()
 	interactionRespondEphemeral(s, i, fmt.Sprintf("User (`%s`) credit updated: `$%f USD`", userId, user.Credit))
+}
+
+func setPrivilege(s *discord.Session, i *discord.InteractionCreate) {
+	operator, ok := userdata.GetUser(i.Member.User.ID)
+	if !ok {
+		interactionRespondEphemeral(s, i, "Unknown opeartor.")
+		return
+	}
+
+	if !operator.IsAdmin() {
+		interactionRespondEphemeral(s, i, "Permission denied: not admin.")
+		return
+	}
+
+	options := i.ApplicationCommandData().Options
+	optionMap := mapInteractionOptions(options)
+
+	inputUserId, ok := optionMap["user-id"]
+	if !ok {
+		interactionRespondEphemeral(s, i, "Invaild input for user-id.")
+		return
+	}
+	userId := inputUserId.StringValue()
+
+	user, ok := userdata.GetUser(userId)
+	if !ok {
+		interactionRespondEphemeral(s, i, fmt.Sprintf("User id does not exist: `%s`", userId))
+		return
+	}
+
+	inputLevel, ok := optionMap["privilege-level"]
+	if !ok {
+		interactionRespondEphemeral(s, i, "Invaild input for privilege level.")
+		return
+	}
+	level := inputLevel.StringValue()
+
+	if !config.VaildPrivilegeLevel(level) {
+		interactionRespondEphemeral(s, i, fmt.Sprintf("Unrecognized privilege level: `%s`", level))
+		return
+	}
+
+	user.PrivilegeLevel = level
+	userdata.SetUser(userId, user)
+	userdata.SaveUserData()
+	interactionRespondEphemeral(s, i, fmt.Sprintf("User (`%s`) privilege level updated: `%s`", userId, user.PrivilegeLevel))
 }
