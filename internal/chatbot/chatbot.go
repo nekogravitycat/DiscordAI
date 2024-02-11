@@ -18,11 +18,8 @@ var activeGptChannels = map[string]*gptChannel{"0": newGptChannel()}
 var registeredRegularCommands []*discord.ApplicationCommand
 var registeredAdminCommands []*discord.ApplicationCommand
 
-func addCommands(registerList []*discord.ApplicationCommand, cmdToAdd []*discord.ApplicationCommand, targetServerId string) {
-	if len(registerList) == 0 {
-		return
-	}
-	registerList = make([]*discord.ApplicationCommand, len(cmdToAdd))
+func addCommands(registerList *[]*discord.ApplicationCommand, cmdToAdd []*discord.ApplicationCommand, targetServerId string) {
+	*registerList = make([]*discord.ApplicationCommand, len(cmdToAdd))
 
 	for i, c := range cmdToAdd {
 		cmd, err := bot.ApplicationCommandCreate(bot.State.User.ID, targetServerId, c)
@@ -30,9 +27,8 @@ func addCommands(registerList []*discord.ApplicationCommand, cmdToAdd []*discord
 			fmt.Println("Error creating command: " + c.Name)
 			fmt.Println(err.Error())
 		}
-		registerList[i] = cmd
+		(*registerList)[i] = cmd
 	}
-
 }
 
 func removeCommands(registerList []*discord.ApplicationCommand, targetServerId string) {
@@ -66,7 +62,7 @@ func Run() {
 			handler(s, i)
 		}
 	})
-	addCommands(registeredRegularCommands, regularCommands, "")
+	addCommands(&registeredRegularCommands, regularCommands, "")
 
 	if len(config.AdminServers) > 0 {
 		fmt.Println("Adding admin commands...")
@@ -76,7 +72,7 @@ func Run() {
 			}
 		})
 		for _, s := range config.AdminServers {
-			addCommands(registeredAdminCommands, adminCommands, s)
+			addCommands(&registeredAdminCommands, adminCommands, s)
 		}
 	} else {
 		fmt.Println("Empty admin server list, admin commands not registered.")
