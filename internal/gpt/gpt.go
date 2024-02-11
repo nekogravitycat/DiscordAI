@@ -51,10 +51,6 @@ func (g *GPT) AddImage(imageURL string, imageDetail string) {
 	g.history = append(g.history, msg)
 }
 
-func (g *GPT) ClearHistory() {
-	g.history = []openai.ChatCompletionMessage{}
-}
-
 func (g *GPT) sysPromptMsg() []openai.ChatCompletionMessage {
 	sys := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
@@ -71,9 +67,15 @@ func (g *GPT) addReply(reply string) {
 	g.history = append(g.history, msg)
 }
 
+func (g *GPT) ClearHistory() {
+	g.history = []openai.ChatCompletionMessage{}
+}
+
 func (g *GPT) trimHistory() {
-	for len(g.history) > 10 {
-		g.history = g.history[1:]
+	excess := len(g.history) - config.GPT.Limits.HistoryLength
+	if excess > 0 {
+		g.history = g.history[excess:]
+		fmt.Printf("Trim %d history messages\n", excess)
 	}
 }
 
