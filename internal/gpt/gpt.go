@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/liuzl/gocc"
 	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/pkoukk/tiktoken-go"
 	openai "github.com/sashabaranov/go-openai"
@@ -84,6 +85,8 @@ func (g *GPT) downgradeHistoryImages() {
 	}
 }
 
+var s2t, _ = gocc.New("s2tw")
+
 func (g *GPT) Generate(model string, user string) (reply string, usage openai.Usage, err error) {
 	fmt.Printf("Model: %s, User: %s\n", model, user)
 
@@ -109,6 +112,17 @@ func (g *GPT) Generate(model string, user string) (reply string, usage openai.Us
 	}
 
 	reply = response.Choices[0].Message.Content
+
+	if config.GPT.ConvertSCtoTC {
+		fmt.Println("Converting SC to TC.")
+		if tc, err := s2t.Convert(reply); err == nil {
+			reply = tc
+		} else {
+			fmt.Println("Error converting SC to TC:")
+			fmt.Println(err)
+		}
+	}
+
 	usage = response.Usage
 
 	g.addReply(reply)

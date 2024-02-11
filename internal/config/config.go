@@ -12,6 +12,7 @@ type gptLimit struct {
 }
 
 type gptConfig struct {
+	ConvertSCtoTC    bool     `json:"convert-sc-to-tc"`
 	DefaultSysPrompt string   `json:"default-sys-prompt"`
 	Limits           gptLimit `json:"limits"`
 }
@@ -27,6 +28,7 @@ func newMainConfig() mainConfig {
 		InitCredits:   0.05,
 		InitPrivilege: 1,
 		GPT: gptConfig{
+			ConvertSCtoTC:    true,
 			DefaultSysPrompt: "You have a great sense of humor and are an independent thinker who likes to chat.",
 			Limits: gptLimit{
 				PromptTokens:    500,
