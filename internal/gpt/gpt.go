@@ -50,6 +50,10 @@ func (g *GPT) AddImage(imageURL string, imageDetail string) {
 	g.history = append(g.history, msg)
 }
 
+func (g *GPT) ClearHistory() {
+	g.history = []openai.ChatCompletionMessage{}
+}
+
 func (g *GPT) sysPromptMsg() []openai.ChatCompletionMessage {
 	sys := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,

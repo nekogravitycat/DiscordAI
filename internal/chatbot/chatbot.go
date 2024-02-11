@@ -40,10 +40,10 @@ func Run() {
 
 	fmt.Println("Adding commands...")
 	registeredCommands = make([]*discord.ApplicationCommand, len(commands))
-	for i, v := range commands {
-		cmd, err := bot.ApplicationCommandCreate(bot.State.User.ID, "987988090528366602", v)
+	for i, c := range commands {
+		cmd, err := bot.ApplicationCommandCreate(bot.State.User.ID, "987988090528366602", c)
 		if err != nil {
-			fmt.Println("Error creating command: " + v.Name)
+			fmt.Println("Error creating command: " + c.Name)
 			fmt.Println(err.Error())
 		}
 		registeredCommands[i] = cmd
@@ -63,10 +63,10 @@ func Stop() {
 
 	// Remove commands before shut down
 	fmt.Println("Removing commands...")
-	for _, v := range registeredCommands {
-		err := bot.ApplicationCommandDelete(bot.State.User.ID, "987988090528366602", v.ID)
+	for _, cmd := range registeredCommands {
+		err := bot.ApplicationCommandDelete(bot.State.User.ID, "987988090528366602", cmd.ID)
 		if err != nil {
-			fmt.Println("Error deleting slash command: " + v.Name)
+			fmt.Println("Error deleting slash command: " + cmd.Name)
 		}
 	}
 
@@ -90,3 +90,6 @@ func messageCreate(s *discord.Session, m *discord.MessageCreate) {
 		gptReply(s, m)
 	}
 }
+
+const notActiveGptChannelMessage = "This is not an active GPT channel. Use `/activate-gpt` to activate GPT for this channel."
+const modelPermissionDeniedMessage = "Permission denied. Please switch to other models by `/set-gpt-model [model name]`"

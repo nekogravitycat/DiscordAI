@@ -42,8 +42,9 @@ func GetUser(discordID string) (user UserInfo, ok bool) {
 	return user, ok
 }
 
-func SetUser(discordID string, user UserInfo) {
+func SetUser(discordID string, user UserInfo) UserInfo {
 	users[discordID] = user
+	return users[discordID]
 }
 
 const USERFILE = "./data/users.json"

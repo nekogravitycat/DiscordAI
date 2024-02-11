@@ -60,6 +60,42 @@ var (
 				discord.ChineseTW: "還原此頻道的 GPT 系統設定至預設值",
 			},
 		},
+		{
+			Name:        "set-gpt-model",
+			Description: "Set the GPT model for the user",
+			DescriptionLocalizations: &map[discord.Locale]string{
+				discord.ChineseTW: "設定用戶使用的 GPT 模型",
+			},
+			Options: []*discord.ApplicationCommandOption{
+				{
+					Name:        "model",
+					Description: "The GPT model to use",
+					Type:        discord.ApplicationCommandOptionString,
+					Required:    true,
+					Choices: []*discord.ApplicationCommandOptionChoice{
+						{
+							Name:  "gpt-3.5-turbo",
+							Value: "gpt-3.5-turbo",
+						},
+						{
+							Name:  "gpt-4-turbo-preview",
+							Value: "gpt-4-turbo-preview",
+						},
+						{
+							Name:  "gpt-4-vision-preview",
+							Value: "gpt-4-vision-preview",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name:        "clear-gpt-history",
+			Description: "Clear GPT chat history for this channel",
+			DescriptionLocalizations: &map[discord.Locale]string{
+				discord.ChineseTW: "清除此頻道的 GPT 聊天歷史",
+			},
+		},
 	}
 
 	commandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
@@ -69,6 +105,8 @@ var (
 		"gpt-sys-prompt":       showGptSysPrompt,
 		"set-gpt-sys-prompt":   setGptSysPrompt,
 		"reset-gpt-sys-prompt": resetGptSysPrompt,
+		"set-gpt-model":        setGptModel,
+		"clear-gpt-history":    clearGptHistory,
 	}
 )
 
@@ -109,7 +147,7 @@ func credits(s *discord.Session, i *discord.InteractionCreate) {
 
 func showGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, "This is not an active GPT channel.")
+		interactionRespond(s, i, notActiveGptChannelMessage)
 		return
 	}
 
@@ -118,7 +156,7 @@ func showGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 
 func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, "This is not an active GPT channel.")
+		interactionRespond(s, i, notActiveGptChannelMessage)
 		return
 	}
 
@@ -134,11 +172,44 @@ func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 
 func resetGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, "This is not an active GPT channel.")
+		interactionRespond(s, i, notActiveGptChannelMessage)
 		return
 	}
 
 	activeGptChannels[i.ChannelID].GPT.SysPrompt = config.GPT.DefaultSysPrompt
 	saveGptChannels()
 	interactionRespond(s, i, fmt.Sprintf("System prompt update:\n```%s```", activeGptChannels[i.ChannelID].GPT.SysPrompt))
+}
+
+func setGptModel(s *discord.Session, i *discord.InteractionCreate) {
+	input := i.ApplicationCommandData().Options[0].Value
+
+	if value, ok := input.(string); ok {
+		user, userExist := userdata.GetUser(i.Member.User.ID)
+		if !userExist {
+			user = userdata.SetUser(i.Member.User.ID, userdata.NewUserInfo())
+		}
+
+		if user.HasPrivilege(value) {
+			user.Model = value
+			userdata.SetUser(i.Member.User.ID, user)
+			userdata.SaveUserData()
+			interactionRespondEphemeral(s, i, fmt.Sprintf("GPT model set:\n```%s```", value))
+		} else {
+			interactionRespondEphemeral(s, i, modelPermissionDeniedMessage)
+		}
+
+	} else {
+		interactionRespondEphemeral(s, i, "Invaild input.")
+	}
+}
+
+func clearGptHistory(s *discord.Session, i *discord.InteractionCreate) {
+	if !isActiveGptChannel(i.ChannelID) {
+		interactionRespond(s, i, notActiveGptChannelMessage)
+		return
+	}
+
+	activeGptChannels[i.ChannelID].GPT.ClearHistory()
+	interactionRespond(s, i, "Chat history cleared.")
 }

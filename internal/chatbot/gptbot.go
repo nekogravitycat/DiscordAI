@@ -66,7 +66,7 @@ func (c *gptChannel) replyNext() {
 			messageReply(bot, m, "Not enough credits.")
 
 		} else if !user.HasPrivilege(user.Model) {
-			messageReply(bot, m, "Permission denied. Please switch to other models.")
+			messageReply(bot, m, modelPermissionDeniedMessage)
 
 		} else {
 			bot.ChannelTyping(m.ChannelID)
