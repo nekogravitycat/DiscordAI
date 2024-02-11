@@ -32,6 +32,21 @@ var (
 			},
 		},
 		{
+			Name:        "add-gpt-image",
+			Description: "Add a image URL for GPT Vision to see",
+			DescriptionLocalizations: &map[discord.Locale]string{
+				discord.ChineseTW: "提供圖片 URL 給 GPT Vision 參考",
+			},
+			Options: []*discord.ApplicationCommandOption{
+				{
+					Name:        "image-url",
+					Description: "The URL of the image",
+					Type:        discord.ApplicationCommandOptionString,
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "gpt-sys-prompt",
 			Description: "Show GPT system prompt for this channel",
 			DescriptionLocalizations: &map[discord.Locale]string{
@@ -104,14 +119,14 @@ var (
 			Description: "Add credits for a user",
 			Options: []*discord.ApplicationCommandOption{
 				{
-					Type:        discord.ApplicationCommandOptionString,
 					Name:        "user-id",
+					Type:        discord.ApplicationCommandOptionString,
 					Description: "User ID",
 					Required:    true,
 				},
 				{
-					Type:        discord.ApplicationCommandOptionNumber,
 					Name:        "amount",
+					Type:        discord.ApplicationCommandOptionNumber,
 					Description: "Amount to add (in USD)",
 					Required:    true,
 				},
@@ -122,14 +137,14 @@ var (
 			Description: "Set privilege level for the user",
 			Options: []*discord.ApplicationCommandOption{
 				{
-					Type:        discord.ApplicationCommandOptionString,
 					Name:        "user-id",
 					Description: "User ID",
+					Type:        discord.ApplicationCommandOptionString,
 					Required:    true,
 				},
 				{
-					Type:        discord.ApplicationCommandOptionString,
 					Name:        "privilege-level",
+					Type:        discord.ApplicationCommandOptionString,
 					Description: "Privilege level",
 					Required:    true,
 				},
@@ -141,6 +156,7 @@ var (
 		"activate-gpt":         activateGPT,
 		"deactivate-gpt":       deactivateGPT,
 		"credits":              credits,
+		"add-gpt-image":        addGptImage,
 		"gpt-sys-prompt":       showGptSysPrompt,
 		"set-gpt-sys-prompt":   setGptSysPrompt,
 		"reset-gpt-sys-prompt": resetGptSysPrompt,
@@ -197,6 +213,31 @@ func credits(s *discord.Session, i *discord.InteractionCreate) {
 	interactionRespondEphemeral(s, i, fmt.Sprintf("Your credits: `$%.5f USD`", credits))
 }
 
+func addGptImage(s *discord.Session, i *discord.InteractionCreate) {
+	if !isActiveGptChannel(i.ChannelID) {
+		interactionRespond(s, i, notActiveGptChannelMessage)
+		return
+	}
+
+	options := i.ApplicationCommandData().Options
+	optionMap := mapInteractionOptions(options)
+
+	inputImageUrl, ok := optionMap["image-url"]
+	if !ok {
+		interactionRespond(s, i, "Invaild input for image URL")
+		return
+	}
+	imageUrl := inputImageUrl.StringValue()
+
+	if err := interactionRespondImage(s, i, imageUrl); err != nil {
+		interactionRespondEphemeral(s, i, "Error adding the image.")
+		return
+	}
+
+	activeGptChannels[i.ChannelID].GPT.AddImage(imageUrl, "auto")
+	fmt.Println("Add image: " + imageUrl)
+}
+
 func showGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
 		interactionRespond(s, i, notActiveGptChannelMessage)
@@ -212,14 +253,19 @@ func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 		return
 	}
 
-	inputPrompt := i.ApplicationCommandData().Options[0].Value
-	if newPrompt, ok := inputPrompt.(string); ok {
-		activeGptChannels[i.ChannelID].GPT.SysPrompt = newPrompt
-		saveGptChannels()
-		interactionRespond(s, i, fmt.Sprintf("System prompt updated:\n```%s```", newPrompt))
-	} else {
-		interactionRespond(s, i, "Invaild input.")
+	options := i.ApplicationCommandData().Options
+	optionMap := mapInteractionOptions(options)
+
+	inputPrompt, ok := optionMap["sys-prompt"]
+	if !ok {
+		interactionRespond(s, i, "Invaild input for system prompt.")
+		return
 	}
+
+	prompt := inputPrompt.StringValue()
+	activeGptChannels[i.ChannelID].GPT.SysPrompt = prompt
+	saveGptChannels()
+	interactionRespond(s, i, fmt.Sprintf("System prompt updated:\n```%s```", prompt))
 }
 
 func resetGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
@@ -237,25 +283,27 @@ func setGptModel(s *discord.Session, i *discord.InteractionCreate) {
 	options := i.ApplicationCommandData().Options
 	optionMap := mapInteractionOptions(options)
 
-	if inputModel, ok := optionMap["model"]; ok {
-		model := inputModel.StringValue()
-		user, userExist := userdata.GetUser(i.Member.User.ID)
-		if !userExist {
-			user = userdata.SetUser(i.Member.User.ID, userdata.NewUserInfo())
-		}
-
-		if user.HasModelPrivilege(model) {
-			user.Model = model
-			userdata.SetUser(i.Member.User.ID, user)
-			userdata.SaveUserData()
-			interactionRespondEphemeral(s, i, fmt.Sprintf("GPT model set:\n```%s```", model))
-		} else {
-			interactionRespondEphemeral(s, i, modelPermissionDeniedMessage)
-		}
-
-	} else {
+	inputModel, ok := optionMap["model"]
+	if !ok {
 		interactionRespondEphemeral(s, i, "Invaild input for model.")
+		return
 	}
+
+	model := inputModel.StringValue()
+	user, userExist := userdata.GetUser(i.Member.User.ID)
+	if !userExist {
+		user = userdata.SetUser(i.Member.User.ID, userdata.NewUserInfo())
+	}
+
+	if !user.HasModelPrivilege(model) {
+		interactionRespondEphemeral(s, i, modelPermissionDeniedMessage)
+		return
+	}
+
+	user.Model = model
+	userdata.SetUser(i.Member.User.ID, user)
+	userdata.SaveUserData()
+	interactionRespondEphemeral(s, i, fmt.Sprintf("GPT model set:\n```%s```", model))
 }
 
 func clearGptHistory(s *discord.Session, i *discord.InteractionCreate) {

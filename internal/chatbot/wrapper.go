@@ -1,6 +1,8 @@
 package chatbot
 
 import (
+	"fmt"
+
 	discord "github.com/bwmarrin/discordgo"
 )
 
@@ -23,6 +25,22 @@ func interactionRespondEphemeral(session *discord.Session, InteractionCreate *di
 		Data: &discord.InteractionResponseData{
 			Flags:   discord.MessageFlagsEphemeral,
 			Content: content,
+		},
+	})
+}
+
+func interactionRespondImage(session *discord.Session, InteractionCreate *discord.InteractionCreate, url string) error {
+	return session.InteractionRespond(InteractionCreate.Interaction, &discord.InteractionResponse{
+		Type: discord.InteractionResponseChannelMessageWithSource,
+		Data: &discord.InteractionResponseData{
+			Content: fmt.Sprintf("Image added in chat: %s", url),
+			Embeds: []*discord.MessageEmbed{
+				{
+					Image: &discord.MessageEmbedImage{
+						URL: url,
+					},
+				},
+			},
 		},
 	})
 }

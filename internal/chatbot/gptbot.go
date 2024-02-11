@@ -70,6 +70,7 @@ func (c *gptChannel) replyNext() {
 
 		} else {
 			bot.ChannelTyping(m.ChannelID)
+			fmt.Printf("Model: %s, User: %s\n", user.Model, m.Author.ID)
 			reply, usage, _ := c.GPT.Generate(user.Model, m.Author.ID)
 
 			// Segment the reply if its longer than 2000 characters
@@ -79,12 +80,12 @@ func (c *gptChannel) replyNext() {
 			}
 
 			messageReply(bot, m, reply)
+			fmt.Printf("Usage: %d (`$%f USD`)\n", usage.TotalTokens, pricing.GetGPTCost(user.Model, usage))
 
 			// Update userdata to follow up possible simultaneous operations
 			user, _ := userdata.GetUser(m.Author.ID)
 			user.Credit -= pricing.GetGPTCost(user.Model, usage)
 			userdata.SetUser(m.Author.ID, user)
-			fmt.Printf("User credits: %f\n", user.Credit)
 			userdata.SaveUserData()
 		}
 	}

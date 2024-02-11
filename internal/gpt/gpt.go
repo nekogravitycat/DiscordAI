@@ -71,7 +71,19 @@ func (g *GPT) ClearHistory() {
 	g.history = []openai.ChatCompletionMessage{}
 }
 
-func (g *GPT) trimHistory() {
+func (g *GPT) removeHistoryIndex(index int) {
+	g.history = append(g.history[:index], g.history[index+1:]...)
+}
+
+func (g *GPT) removeHistoryImages() {
+	for i, m := range g.history {
+		if m.MultiContent != nil {
+			g.removeHistoryIndex(i)
+		}
+	}
+}
+
+func (g *GPT) trimOldHistory() {
 	excess := len(g.history) - config.GPT.Limits.HistoryLength
 	if excess > 0 {
 		g.history = g.history[excess:]
@@ -82,6 +94,7 @@ func (g *GPT) trimHistory() {
 func (g *GPT) downgradeHistoryImages() {
 	for i, msg := range g.history {
 		if msg.MultiContent != nil {
+			fmt.Printf("Image detail downgraded: %s", msg.MultiContent[0].ImageURL.URL)
 			g.history[i].MultiContent[0].ImageURL.Detail = openai.ImageURLDetailLow
 		}
 	}
@@ -90,27 +103,34 @@ func (g *GPT) downgradeHistoryImages() {
 var s2t, _ = gocc.New("s2tw")
 
 func (g *GPT) Generate(model string, user string) (reply string, usage openai.Usage, err error) {
-	fmt.Printf("Model: %s, User: %s\n", model, user)
 
 	if len(g.history) <= 0 {
 		return "", openai.Usage{}, errors.New("empty history")
 	}
 
-	g.trimHistory()
-	g.downgradeHistoryImages()
+	g.trimOldHistory()
+
+	var history = []openai.ChatCompletionMessage{}
+	if model != "gpt-4-vision-preview" {
+		history = append(history, historyWithoutImages(g.history)...)
+		fmt.Println("Images ignored due to model limitation.")
+	} else {
+		history = append(history, g.history...)
+	}
 
 	response, err := g.client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
 			Model:     model,
-			Messages:  append(g.sysPromptMsg(), g.history...),
+			Messages:  append(g.sysPromptMsg(), history...),
 			User:      user,
 			MaxTokens: config.GPT.Limits.ReplyTokens,
 		},
 	)
 
 	if err != nil {
-		return "```Something went wrong, please try again later.```", openai.Usage{}, err
+		g.removeHistoryImages()
+		return fmt.Sprintf("Something went wrong, please try again later. (Any image is removed from history.)\n```%s```", err.Error()), openai.Usage{}, err
 	}
 
 	reply = response.Choices[0].Message.Content
@@ -128,10 +148,25 @@ func (g *GPT) Generate(model string, user string) (reply string, usage openai.Us
 	usage = response.Usage
 
 	g.addReply(reply)
-
-	fmt.Printf("Usage: %d\n", usage)
+	g.downgradeHistoryImages()
 
 	return reply, usage, err
+}
+
+func historyWithoutImages(history []openai.ChatCompletionMessage) []openai.ChatCompletionMessage {
+	h := []openai.ChatCompletionMessage{}
+	for _, m := range history {
+		if m.MultiContent == nil {
+			h = append(h, m)
+		} else {
+			replacement := openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "[Image removed]",
+			}
+			h = append(h, replacement)
+		}
+	}
+	return h
 }
 
 func CountToken(prompt string, model string) int {
