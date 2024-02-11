@@ -18,15 +18,17 @@ type gptConfig struct {
 }
 
 type mainConfig struct {
+	AdminServers  []string  `json:"admin-servers"`
 	InitCredits   float32   `json:"init-credits"`
-	InitPrivilege int       `json:"init-privilege"`
+	InitPrivilege string    `json:"init-privilege"`
 	GPT           gptConfig `json:"gpt"`
 }
 
 func newMainConfig() mainConfig {
 	c := mainConfig{
+		AdminServers:  []string{},
 		InitCredits:   0.05,
-		InitPrivilege: 1,
+		InitPrivilege: "1",
 		GPT: gptConfig{
 			ConvertSCtoTC:    true,
 			DefaultSysPrompt: "You have a great sense of humor and are an independent thinker who likes to chat.",
@@ -44,8 +46,9 @@ func newMainConfig() mainConfig {
 var configData mainConfig = newMainConfig()
 
 var (
+	AdminServers  []string
 	InitCredits   float32
-	InitPrivilege int
+	InitPrivilege string
 	GPT           gptConfig
 )
 
@@ -55,6 +58,7 @@ func LoadConfig() {
 	jsondata.Check(CONFIGFILE, configData)
 	jsondata.Load(CONFIGFILE, &configData)
 
+	AdminServers = configData.AdminServers
 	InitCredits = configData.InitCredits
 	InitPrivilege = configData.InitPrivilege
 	GPT = configData.GPT

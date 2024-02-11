@@ -65,7 +65,7 @@ func (c *gptChannel) replyNext() {
 		if user.Credit <= 0 {
 			messageReply(bot, m, "Not enough credits.")
 
-		} else if !user.HasPrivilege(user.Model) {
+		} else if !user.HasModelPrivilege(user.Model) {
 			messageReply(bot, m, modelPermissionDeniedMessage)
 
 		} else {

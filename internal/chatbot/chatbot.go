@@ -9,12 +9,40 @@ import (
 	"syscall"
 
 	discord "github.com/bwmarrin/discordgo"
+	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/nekogravitycat/DiscordAI/internal/userdata"
 )
 
 var bot *discord.Session
 var activeGptChannels = map[string]*gptChannel{"0": newGptChannel()}
-var registeredCommands []*discord.ApplicationCommand
+var registeredRegularCommands []*discord.ApplicationCommand
+var registeredAdminCommands []*discord.ApplicationCommand
+
+func addCommands(registerList []*discord.ApplicationCommand, cmdToAdd []*discord.ApplicationCommand, targetServerId string) {
+	if len(registerList) == 0 {
+		return
+	}
+	registerList = make([]*discord.ApplicationCommand, len(cmdToAdd))
+
+	for i, c := range cmdToAdd {
+		cmd, err := bot.ApplicationCommandCreate(bot.State.User.ID, targetServerId, c)
+		if err != nil {
+			fmt.Println("Error creating command: " + c.Name)
+			fmt.Println(err.Error())
+		}
+		registerList[i] = cmd
+	}
+
+}
+
+func removeCommands(registerList []*discord.ApplicationCommand, targetServerId string) {
+	for _, cmd := range registerList {
+		err := bot.ApplicationCommandDelete(bot.State.User.ID, targetServerId, cmd.ID)
+		if err != nil {
+			fmt.Println("Error deleting slash command: " + cmd.Name)
+		}
+	}
+}
 
 func Run() {
 	var err error
@@ -32,21 +60,26 @@ func Run() {
 	}
 	defer bot.Close()
 
+	fmt.Println("Adding commands...")
 	bot.AddHandler(func(s *discord.Session, i *discord.InteractionCreate) {
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			handler(s, i)
 		}
 	})
+	addCommands(registeredRegularCommands, regularCommands, "")
 
-	fmt.Println("Adding commands...")
-	registeredCommands = make([]*discord.ApplicationCommand, len(commands))
-	for i, c := range commands {
-		cmd, err := bot.ApplicationCommandCreate(bot.State.User.ID, "987988090528366602", c)
-		if err != nil {
-			fmt.Println("Error creating command: " + c.Name)
-			fmt.Println(err.Error())
+	if len(config.AdminServers) > 0 {
+		fmt.Println("Adding admin commands...")
+		bot.AddHandler(func(s *discord.Session, i *discord.InteractionCreate) {
+			if handler, ok := adminCommandHandlers[i.ApplicationCommandData().Name]; ok {
+				handler(s, i)
+			}
+		})
+		for _, s := range config.AdminServers {
+			addCommands(registeredAdminCommands, adminCommands, s)
 		}
-		registeredCommands[i] = cmd
+	} else {
+		fmt.Println("Empty admin server list, admin commands not registered.")
 	}
 
 	bot.AddHandler(messageCreate)
@@ -63,10 +96,12 @@ func Stop() {
 
 	// Remove commands before shut down
 	fmt.Println("Removing commands...")
-	for _, cmd := range registeredCommands {
-		err := bot.ApplicationCommandDelete(bot.State.User.ID, "987988090528366602", cmd.ID)
-		if err != nil {
-			fmt.Println("Error deleting slash command: " + cmd.Name)
+	removeCommands(registeredRegularCommands, "")
+
+	if len(config.AdminServers) > 0 {
+		fmt.Println("Removing admin commands...")
+		for _, s := range config.AdminServers {
+			removeCommands(registeredAdminCommands, s)
 		}
 	}
 

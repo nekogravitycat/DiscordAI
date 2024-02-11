@@ -1,8 +1,6 @@
 package config
 
 import (
-	"strconv"
-
 	"github.com/nekogravitycat/DiscordAI/internal/jsondata"
 )
 
@@ -19,8 +17,8 @@ func newPrivilegeConfig() privilegeConfig {
 
 var privilegeData = map[string]privilegeConfig{"0": newPrivilegeConfig()}
 
-func GetPrivilegeConfig(level int) (c privilegeConfig, ok bool) {
-	c, ok = privilegeData[strconv.Itoa(level)]
+func GetPrivilegeConfig(level string) (c privilegeConfig, ok bool) {
+	c, ok = privilegeData[level]
 	return c, ok
 }
 

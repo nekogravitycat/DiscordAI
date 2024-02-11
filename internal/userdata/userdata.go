@@ -3,7 +3,6 @@ package userdata
 import (
 	"fmt"
 	"slices"
-	"strconv"
 
 	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/nekogravitycat/DiscordAI/internal/jsondata"
@@ -13,7 +12,7 @@ import (
 type UserInfo struct {
 	Model          string  `json:"model"`
 	Credit         float32 `json:"credit"`
-	PrivilegeLevel int     `json:"privilege-level"`
+	PrivilegeLevel string  `json:"privilege-level"`
 }
 
 func NewUserInfo() UserInfo {
@@ -25,10 +24,14 @@ func NewUserInfo() UserInfo {
 	return u
 }
 
-func (u UserInfo) HasPrivilege(model string) bool {
+func (u UserInfo) IsAdmin() bool {
+	return u.PrivilegeLevel == "admin"
+}
+
+func (u UserInfo) HasModelPrivilege(model string) bool {
 	c, ok := config.GetPrivilegeConfig(u.PrivilegeLevel)
 	if !ok {
-		fmt.Println("Unrecognized privilege level: " + strconv.Itoa(u.PrivilegeLevel))
+		fmt.Println("Unrecognized privilege level: " + u.PrivilegeLevel)
 		return false
 	}
 

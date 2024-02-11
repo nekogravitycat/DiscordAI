@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	commands = []*discord.ApplicationCommand{
+	regularCommands = []*discord.ApplicationCommand{
 		{
 			Name:        "activate-gpt",
 			Description: "Start ChatGPT on this channel",
@@ -98,6 +98,27 @@ var (
 		},
 	}
 
+	adminCommands = []*discord.ApplicationCommand{
+		{
+			Name:        "add-credits",
+			Description: "Add credits for a user",
+			Options: []*discord.ApplicationCommandOption{
+				{
+					Type:        discord.ApplicationCommandOptionString,
+					Name:        "user-id",
+					Description: "User ID",
+					Required:    true,
+				},
+				{
+					Type:        discord.ApplicationCommandOptionNumber,
+					Name:        "amount",
+					Description: "Amount to add (in USD)",
+					Required:    true,
+				},
+			},
+		},
+	}
+
 	commandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
 		"activate-gpt":         activateGPT,
 		"deactivate-gpt":       deactivateGPT,
@@ -107,6 +128,10 @@ var (
 		"reset-gpt-sys-prompt": resetGptSysPrompt,
 		"set-gpt-model":        setGptModel,
 		"clear-gpt-history":    clearGptHistory,
+	}
+
+	adminCommandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
+		"add-credits": addCredit,
 	}
 )
 
@@ -160,11 +185,11 @@ func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 		return
 	}
 
-	input := i.ApplicationCommandData().Options[0].Value
-	if value, ok := input.(string); ok {
-		activeGptChannels[i.ChannelID].GPT.SysPrompt = value
+	inputPrompt := i.ApplicationCommandData().Options[0].Value
+	if newPrompt, ok := inputPrompt.(string); ok {
+		activeGptChannels[i.ChannelID].GPT.SysPrompt = newPrompt
 		saveGptChannels()
-		interactionRespond(s, i, fmt.Sprintf("System prompt update:\n```%s```", value))
+		interactionRespond(s, i, fmt.Sprintf("System prompt updated:\n```%s```", newPrompt))
 	} else {
 		interactionRespond(s, i, "Invaild input.")
 	}
@@ -178,7 +203,7 @@ func resetGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 
 	activeGptChannels[i.ChannelID].GPT.SysPrompt = config.GPT.DefaultSysPrompt
 	saveGptChannels()
-	interactionRespond(s, i, fmt.Sprintf("System prompt update:\n```%s```", activeGptChannels[i.ChannelID].GPT.SysPrompt))
+	interactionRespond(s, i, fmt.Sprintf("System prompt updated:\n```%s```", activeGptChannels[i.ChannelID].GPT.SysPrompt))
 }
 
 func setGptModel(s *discord.Session, i *discord.InteractionCreate) {
@@ -190,7 +215,7 @@ func setGptModel(s *discord.Session, i *discord.InteractionCreate) {
 			user = userdata.SetUser(i.Member.User.ID, userdata.NewUserInfo())
 		}
 
-		if user.HasPrivilege(value) {
+		if user.HasModelPrivilege(value) {
 			user.Model = value
 			userdata.SetUser(i.Member.User.ID, user)
 			userdata.SaveUserData()
@@ -212,4 +237,48 @@ func clearGptHistory(s *discord.Session, i *discord.InteractionCreate) {
 
 	activeGptChannels[i.ChannelID].GPT.ClearHistory()
 	interactionRespond(s, i, "Chat history cleared.")
+}
+
+func addCredit(s *discord.Session, i *discord.InteractionCreate) {
+	operator, ok := userdata.GetUser(i.Member.User.ID)
+	if !ok {
+		interactionRespondEphemeral(s, i, "Unknown opeartor.")
+		return
+	}
+
+	if !operator.IsAdmin() {
+		interactionRespondEphemeral(s, i, "Permission denied: not admin.")
+		return
+	}
+
+	options := i.ApplicationCommandData().Options
+	optionMap := make(map[string]*discord.ApplicationCommandInteractionDataOption, len(options))
+	for _, opt := range options {
+		optionMap[opt.Name] = opt
+	}
+
+	inputUserId, ok := optionMap["user-id"]
+	if !ok {
+		interactionRespondEphemeral(s, i, "Invaild input for user-id.")
+		return
+	}
+	userId := inputUserId.StringValue()
+
+	user, ok := userdata.GetUser(userId)
+	if !ok {
+		interactionRespondEphemeral(s, i, fmt.Sprintf("User id does not exist: `%s`", userId))
+		return
+	}
+
+	inputAmount, ok := optionMap["amount"]
+	if !ok {
+		interactionRespondEphemeral(s, i, "Invaild input for amount.")
+		return
+	}
+	amount := inputAmount.FloatValue()
+
+	user.Credit += float32(amount)
+	userdata.SetUser(userId, user)
+	userdata.SaveUserData()
+	interactionRespondEphemeral(s, i, fmt.Sprintf("User (`%s`) credit updated: `$%f USD`", userId, user.Credit))
 }
