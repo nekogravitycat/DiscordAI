@@ -2,8 +2,6 @@
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 
 *.env
-data/
-configs/
 
 # Binaries for programs and plugins
 *.exe
