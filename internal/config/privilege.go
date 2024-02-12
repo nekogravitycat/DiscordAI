@@ -2,20 +2,48 @@ package config
 
 import (
 	"github.com/nekogravitycat/DiscordAI/internal/jsondata"
+	"github.com/sashabaranov/go-openai"
 )
 
 type privilegeConfig struct {
 	Models []string `json:"models"`
 }
 
-func newPrivilegeConfig() privilegeConfig {
-	pc := privilegeConfig{
+var privilegeData = map[string]privilegeConfig{
+	"admin": {
+		Models: []string{
+			openai.GPT4TurboPreview,
+			openai.GPT4VisionPreview,
+			openai.GPT3Dot5Turbo,
+			openai.CreateImageModelDallE3,
+			openai.CreateImageModelDallE2,
+		},
+	},
+	"0": {
 		Models: []string{},
-	}
-	return pc
+	},
+	"1": {
+		Models: []string{
+			openai.GPT3Dot5Turbo,
+		},
+	},
+	"2": {
+		Models: []string{
+			openai.GPT4TurboPreview,
+			openai.GPT4VisionPreview,
+			openai.GPT3Dot5Turbo,
+		},
+	},
+	"3": {
+		Models: []string{
+			openai.GPT4TurboPreview,
+			openai.GPT4VisionPreview,
+			openai.GPT3Dot5Turbo,
+			openai.CreateImageModelDallE3,
+			openai.CreateImageModelDallE2,
+		},
+	},
 }
-
-var privilegeData = map[string]privilegeConfig{"0": newPrivilegeConfig()}
 
 func VaildPrivilegeLevel(level string) bool {
 	_, ok := privilegeData[level]
