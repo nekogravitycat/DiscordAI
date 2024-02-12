@@ -34,3 +34,28 @@ You can set these environment variables by either creating a `.env` file at the 
 - **/set-user-privilege**: Set privilege level for a user.
   - `user-id`: User ID (required).
   - `privilege-level`: Privilege level (required).
+
+Here's the addition to the README regarding deploying the app with Docker using the provided docker-compose file:
+
+## Docker Deployment
+
+To deploy DiscordAI using Docker, you can utilize the provided docker-compose file. Ensure you have Docker installed on your system before proceeding.
+
+1. Clone the GitHub repository for the docker-compose file:
+    ```bash
+    git clone https://github.com/nekogravitycat/DiscordAI-Server
+    ```
+
+2. Navigate to the directory containing the docker-compose file:
+    ```bash
+    cd DiscordAI-Server
+    ```
+
+3. Create and modify the `.env` file within the project directory to include your Discord bot token and OpenAI API token.
+
+4. Run the following command to start DiscordAI:
+    ```bash
+    docker-compose up -d
+    ```
+
+Please note that the docker-compose file mounts the `configs` and `data` directories to persist configuration and data between container restarts. 
