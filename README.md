@@ -2,15 +2,6 @@
 
 A Discord bot powered by artificial intelligence, rebuilt in Go from [DiscordGPT](https://github.com/nekogravitycat/DiscordGPT). Designed for modularity and extensibility.
 
-## Environment Variables
-
-This program requires the following environment variables to be set in order to function properly:
-
-- **DISCORDBOT_TOKEN**: Discord bot token for authentication.
-- **OPENAI_TOKEN**: OpenAI API token for accessing AI capabilities.
-
-You can set these environment variables by either creating a `.env` file at the project root and specifying them there, or by setting them directly using system environment variables.
-
 ## Commands
 
 ### Regular User Commands:
@@ -35,7 +26,14 @@ You can set these environment variables by either creating a `.env` file at the 
   - `user-id`: User ID (required).
   - `privilege-level`: Privilege level (required).
 
-Here's the addition to the README regarding deploying the app with Docker using the provided docker-compose file:
+## Environment Variables
+
+This program requires the following environment variables to be set in order to function properly:
+
+- **DISCORDBOT_TOKEN**: Discord bot token for authentication.
+- **OPENAI_TOKEN**: OpenAI API token for accessing AI capabilities.
+
+You can set these environment variables by either creating a `.env` file at the project root and specifying them there, or by setting them directly using system environment variables.
 
 ## Docker Deployment
 
@@ -58,4 +56,4 @@ To deploy DiscordAI using Docker, you can utilize the provided docker-compose fi
     docker-compose up -d
     ```
 
-Please note that the docker-compose file mounts the `configs` and `data` directories to persist configuration and data between container restarts. 
+Please note that the docker-compose file mounts the `configs` and `data` directories to persist configuration and data between container restarts.
