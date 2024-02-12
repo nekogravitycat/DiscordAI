@@ -1,0 +1,36 @@
+# DiscordAI
+
+A Discord bot powered by artificial intelligence, rebuilt in Go from [DiscordGPT](https://github.com/nekogravitycat/DiscordGPT). Designed for modularity and extensibility.
+
+## Environment Variables
+
+This program requires the following environment variables to be set in order to function properly:
+
+- **DISCORDBOT_TOKEN**: Discord bot token for authentication.
+- **OPENAI_TOKEN**: OpenAI API token for accessing AI capabilities.
+
+You can set these environment variables by either creating a `.env` file at the project root and specifying them there, or by setting them directly using system environment variables.
+
+## Commands
+
+### Regular User Commands:
+- **/activate-gpt**: Start ChatGPT on the current channel.
+- **/deactivate-gpt**: Stop ChatGPT on the current channel.
+- **/credits**: Check your remaining credits.
+- **/add-gpt-image**: Add an image URL for GPT Vision to analyze.
+  - `image-url`: The URL of the image (required).
+- **/gpt-sys-prompt**: View the current GPT system prompt for this channel.
+- **/set-gpt-sys-prompt**: Set the GPT system prompt for this channel.
+  - `sys-prompt`: The system prompt of GPT (required).
+- **/reset-gpt-sys-prompt**: Reset the GPT system prompt for this channel to default.
+- **/set-gpt-model**: Set the GPT model for your usage.
+  - `model`: The GPT model to use (required). Available options: `gpt-3.5-turbo`, `gpt-4-turbo-preview`, `gpt-4-vision-preview`.
+- **/clear-gpt-history**: Clear the GPT chat history for this channel.
+
+### Admin Commands:
+- **/add-credits**: Add credits for a user.
+  - `user-id`: User ID (required).
+  - `amount`: Amount to add (in USD) (required).
+- **/set-user-privilege**: Set privilege level for a user.
+  - `user-id`: User ID (required).
+  - `privilege-level`: Privilege level (required).
