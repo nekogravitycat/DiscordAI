@@ -32,21 +32,6 @@ var (
 			},
 		},
 		{
-			Name:        "add-gpt-image",
-			Description: "Add a image URL for GPT Vision to see",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "提供圖片 URL 給 GPT Vision 參考",
-			},
-			Options: []*discord.ApplicationCommandOption{
-				{
-					Name:        "image-url",
-					Description: "The URL of the image",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-				},
-			},
-		},
-		{
 			Name:        "gpt-sys-prompt",
 			Description: "Show GPT system prompt for this channel",
 			DescriptionLocalizations: &map[discord.Locale]string{
@@ -156,7 +141,6 @@ var (
 		"activate-gpt":         activateGPT,
 		"deactivate-gpt":       deactivateGPT,
 		"credits":              credits,
-		"add-gpt-image":        addGptImage,
 		"gpt-sys-prompt":       showGptSysPrompt,
 		"set-gpt-sys-prompt":   setGptSysPrompt,
 		"reset-gpt-sys-prompt": resetGptSysPrompt,
@@ -211,31 +195,6 @@ func credits(s *discord.Session, i *discord.InteractionCreate) {
 	}
 
 	interactionRespondEphemeral(s, i, fmt.Sprintf("Your credits: `$%.5f USD`", credits))
-}
-
-func addGptImage(s *discord.Session, i *discord.InteractionCreate) {
-	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, notActiveGptChannelMessage)
-		return
-	}
-
-	options := i.ApplicationCommandData().Options
-	optionMap := mapInteractionOptions(options)
-
-	inputImageUrl, ok := optionMap["image-url"]
-	if !ok {
-		interactionRespond(s, i, "Invaild input for image URL")
-		return
-	}
-	imageUrl := inputImageUrl.StringValue()
-
-	if err := interactionRespondImage(s, i, imageUrl); err != nil {
-		interactionRespondEphemeral(s, i, "Error adding the image.")
-		return
-	}
-
-	activeGptChannels[i.ChannelID].GPT.AddImage(imageUrl, "auto")
-	fmt.Println("Add image: " + imageUrl)
 }
 
 func showGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/liuzl/gocc"
 	"github.com/nekogravitycat/DiscordAI/internal/config"
@@ -177,4 +178,14 @@ func CountToken(prompt string, model string) int {
 
 	token := tkm.Encode(prompt, nil, nil)
 	return len(token)
+}
+
+func IsImageUrl(url string) bool {
+	urlLower := strings.ToLower(url)
+
+	isJPG := strings.Contains(urlLower, ".jpg")
+	isPNG := strings.Contains(urlLower, ".png")
+	isWEBP := strings.Contains(urlLower, ".webp")
+
+	return isJPG || isPNG || isWEBP
 }

@@ -54,13 +54,29 @@ func Run() {
 	}
 	defer bot.Close()
 
-	fmt.Println("Adding commands...")
+	fmt.Println("Adding regular commands...")
 	bot.AddHandler(func(s *discord.Session, i *discord.InteractionCreate) {
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			handler(s, i)
 		}
 	})
-	addCommands(&registeredRegularCommands, regularCommands, "")
+
+	if config.NoGlobalCommands {
+		fmt.Println("'no-global-commands' enabled, adding regular commands to admin servers.")
+		if len(config.AdminServers) > 0 {
+			fmt.Print("Server list: ")
+			for _, s := range config.AdminServers {
+				fmt.Printf("%s ", s)
+				addCommands(&registeredRegularCommands, regularCommands, s)
+			}
+			fmt.Println()
+		} else {
+			fmt.Println("Empty admin server list, regular commands not registered.")
+		}
+
+	} else {
+		addCommands(&registeredRegularCommands, regularCommands, "")
+	}
 
 	if len(config.AdminServers) > 0 {
 		fmt.Println("Adding admin commands...")
@@ -69,9 +85,12 @@ func Run() {
 				handler(s, i)
 			}
 		})
+		fmt.Print("Server list: ")
 		for _, s := range config.AdminServers {
+			fmt.Printf("%s ", s)
 			addCommands(&registeredAdminCommands, adminCommands, s)
 		}
+		fmt.Println()
 	} else {
 		fmt.Println("Empty admin server list, admin commands not registered.")
 	}
@@ -89,8 +108,16 @@ func Stop() {
 	userdata.SaveUserData()
 
 	// Remove commands before shut down
-	fmt.Println("Removing commands...")
-	removeCommands(registeredRegularCommands, "")
+	fmt.Println("Removing regular commands...")
+	if config.NoGlobalCommands {
+		if len(config.AdminServers) > 0 {
+			for _, s := range config.AdminServers {
+				removeCommands(registeredRegularCommands, s)
+			}
+		}
+	} else {
+		removeCommands(registeredRegularCommands, "")
+	}
 
 	if len(config.AdminServers) > 0 {
 		fmt.Println("Removing admin commands...")

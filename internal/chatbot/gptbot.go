@@ -59,6 +59,14 @@ func (c *gptChannel) replyNext() {
 
 	c.GPT.AddMessage(trim2)
 
+	// Add image if exists
+	if len(m.Attachments) > 0 {
+		url := m.Attachments[0].URL
+		if gpt.IsImageUrl(url) {
+			c.GPT.AddImage(url, "auto")
+		}
+	}
+
 	if m.Content == trim2 {
 		user, _ := userdata.GetUser(m.Author.ID)
 
