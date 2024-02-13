@@ -4,7 +4,7 @@ A Discord bot powered by artificial intelligence, rebuilt in Go from [DiscordGPT
 
 ## Commands
 
-### Regular User Commands:
+### Regular User Commands
 - **/activate-gpt**: Start ChatGPT on the current channel.
 - **/deactivate-gpt**: Stop ChatGPT on the current channel.
 - **/credits**: Check your remaining credits.
@@ -18,7 +18,7 @@ A Discord bot powered by artificial intelligence, rebuilt in Go from [DiscordGPT
   - `model`: The GPT model to use (required). Available options: `gpt-3.5-turbo`, `gpt-4-turbo-preview`, `gpt-4-vision-preview`.
 - **/clear-gpt-history**: Clear the GPT chat history for this channel.
 
-### Admin Commands:
+### Admin Commands
 - **/add-credits**: Add credits for a user.
   - `user-id`: User ID (required).
   - `amount`: Amount to add (in USD) (required).
