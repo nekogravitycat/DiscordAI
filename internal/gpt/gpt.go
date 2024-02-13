@@ -95,7 +95,7 @@ func (g *GPT) trimOldHistory() {
 func (g *GPT) downgradeHistoryImages() {
 	for i, msg := range g.history {
 		if msg.MultiContent != nil {
-			fmt.Printf("Image detail downgraded: %s", msg.MultiContent[0].ImageURL.URL)
+			fmt.Printf("Image detail downgraded: %s\n", msg.MultiContent[0].ImageURL.URL)
 			g.history[i].MultiContent[0].ImageURL.Detail = openai.ImageURLDetailLow
 		}
 	}

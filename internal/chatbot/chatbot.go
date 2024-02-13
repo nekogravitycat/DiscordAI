@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/nekogravitycat/DiscordAI/internal/config"
@@ -97,11 +99,11 @@ func Run() {
 
 	bot.AddHandler(messageCreate)
 
-	fmt.Println("Bot is now running. Type 'stop' and hit enter to exit.")
-	var input string = ""
-	for input != "stop" {
-		fmt.Scanln(&input)
-	}
+	// Run until receive CTRL-C signal
+	fmt.Println("Bot is now running. Press CTRL-C to exit.")
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	<-quit
 }
 
 func Stop() {
