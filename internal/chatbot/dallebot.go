@@ -31,6 +31,15 @@ func dalleReply(s *discord.Session, i *discord.InteractionCreate, model string) 
 	}
 	prompt := inputPrompt.StringValue()
 
+	if model == openai.CreateImageModelDallE2 && len(prompt) > 1000 {
+		interactionRespondEphemeral(s, i, "Prompt too long.")
+		return
+	}
+	if model == openai.CreateImageModelDallE3 && len(prompt) > 4000 {
+		interactionRespondEphemeral(s, i, "Prompt too long.")
+		return
+	}
+
 	inputSize, ok := optionMap["size"]
 	if !ok {
 		interactionRespondEphemeral(s, i, "Invaild input for size.")

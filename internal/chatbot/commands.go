@@ -5,6 +5,7 @@ import (
 
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/nekogravitycat/DiscordAI/internal/config"
+	"github.com/nekogravitycat/DiscordAI/internal/gpt"
 	"github.com/nekogravitycat/DiscordAI/internal/userdata"
 	"github.com/sashabaranov/go-openai"
 )
@@ -269,7 +270,7 @@ func mapInteractionOptions(options []*discord.ApplicationCommandInteractionDataO
 
 func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
 	if isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, "Already in chat")
+		interactionRespondEphemeral(s, i, "Already in chat")
 		return
 	}
 
@@ -280,7 +281,7 @@ func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
 
 func deactivateGPT(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, "Not in channel")
+		interactionRespondEphemeral(s, i, "Not in channel")
 		return
 	}
 
@@ -304,7 +305,7 @@ func credits(s *discord.Session, i *discord.InteractionCreate) {
 
 func showGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, notActiveGptChannelMessage)
+		interactionRespondEphemeral(s, i, notActiveGptChannelMessage)
 		return
 	}
 
@@ -313,7 +314,7 @@ func showGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 
 func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, notActiveGptChannelMessage)
+		interactionRespondEphemeral(s, i, notActiveGptChannelMessage)
 		return
 	}
 
@@ -322,10 +323,16 @@ func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 
 	inputPrompt, ok := optionMap["sys-prompt"]
 	if !ok {
-		interactionRespond(s, i, "Invaild input for system prompt.")
+		interactionRespondEphemeral(s, i, "Invaild input for system prompt.")
 		return
 	}
+
 	prompt := inputPrompt.StringValue()
+	if gpt.CountToken(prompt, openai.GPT3Dot5Turbo) > config.GPT.Limits.SysPromptTokens {
+		interactionRespondEphemeral(s, i, "System prompt is too long.")
+		return
+	}
+
 	activeGptChannels[i.ChannelID].GPT.SysPrompt = prompt
 
 	saveGptChannels()
@@ -372,12 +379,20 @@ func setGptModel(s *discord.Session, i *discord.InteractionCreate) {
 
 func clearGptHistory(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespond(s, i, notActiveGptChannelMessage)
+		interactionRespondEphemeral(s, i, notActiveGptChannelMessage)
 		return
 	}
 
 	activeGptChannels[i.ChannelID].GPT.ClearHistory()
 	interactionRespond(s, i, "Chat history cleared.")
+}
+
+func dalle2Generate(s *discord.Session, i *discord.InteractionCreate) {
+	dalleReply(s, i, openai.CreateImageModelDallE2)
+}
+
+func dalle3Generate(s *discord.Session, i *discord.InteractionCreate) {
+	dalleReply(s, i, openai.CreateImageModelDallE3)
 }
 
 func addCredit(s *discord.Session, i *discord.InteractionCreate) {
@@ -418,7 +433,7 @@ func addCredit(s *discord.Session, i *discord.InteractionCreate) {
 	user.Credit += float32(amount)
 	userdata.SetUser(userId, user)
 	userdata.SaveUserData()
-	interactionRespondEphemeral(s, i, fmt.Sprintf("User (`%s`) credit updated: `$%f USD`", userId, user.Credit))
+	interactionRespond(s, i, fmt.Sprintf("User (`%s`) credit updated: `$%f USD`", userId, user.Credit))
 }
 
 func setPrivilege(s *discord.Session, i *discord.InteractionCreate) {
@@ -464,13 +479,5 @@ func setPrivilege(s *discord.Session, i *discord.InteractionCreate) {
 	user.PrivilegeLevel = level
 	userdata.SetUser(userId, user)
 	userdata.SaveUserData()
-	interactionRespondEphemeral(s, i, fmt.Sprintf("User (`%s`) privilege level updated: `%s`", userId, user.PrivilegeLevel))
-}
-
-func dalle2Generate(s *discord.Session, i *discord.InteractionCreate) {
-	dalleReply(s, i, openai.CreateImageModelDallE2)
-}
-
-func dalle3Generate(s *discord.Session, i *discord.InteractionCreate) {
-	dalleReply(s, i, openai.CreateImageModelDallE3)
+	interactionRespond(s, i, fmt.Sprintf("User (`%s`) privilege level updated: `%s`", userId, user.PrivilegeLevel))
 }
