@@ -19,7 +19,7 @@ type gptChannel struct {
 
 func newGptChannel() *gptChannel {
 	chat := &gptChannel{
-		GPT:   gpt.NewGPT(),
+		GPT:   gpt.NewGPT(openaiClient),
 		queue: []*discord.MessageCreate{},
 	}
 	return chat
@@ -111,13 +111,22 @@ func isActiveGptChannel(channelID string) bool {
 const GPTCHANNELFILE = "./data/gptchannels.json"
 
 func LoadGptChannels() {
+	fmt.Println("Loading GPT channels...")
 	jsondata.Check(GPTCHANNELFILE, activeGptChannels)
 	jsondata.Load(GPTCHANNELFILE, &activeGptChannels)
+
+	if len(activeGptChannels) == 0 {
+		return
+	}
+
+	fmt.Print("Channel list: ")
 	for chId, ch := range activeGptChannels {
 		sysPromptData := ch.GPT.SysPrompt
 		activeGptChannels[chId] = newGptChannel()
 		activeGptChannels[chId].GPT.SysPrompt = sysPromptData
+		fmt.Printf("%s, ", chId)
 	}
+	fmt.Println()
 }
 
 func saveGptChannels() {

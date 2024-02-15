@@ -11,12 +11,18 @@ import (
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/nekogravitycat/DiscordAI/internal/userdata"
+	"github.com/sashabaranov/go-openai"
 )
 
+var openaiClient *openai.Client
 var bot *discord.Session
 var activeGptChannels = map[string]*gptChannel{"0": newGptChannel()}
 var registeredRegularCommands []*discord.ApplicationCommand
 var registeredAdminCommands []*discord.ApplicationCommand
+
+func NewOpenaiClient() {
+	openaiClient = openai.NewClient(os.Getenv("OPENAI_TOKEN"))
+}
 
 func addCommands(registerList *[]*discord.ApplicationCommand, cmdToAdd []*discord.ApplicationCommand, targetServerId string) {
 	*registerList = make([]*discord.ApplicationCommand, len(cmdToAdd))
@@ -42,7 +48,6 @@ func removeCommands(registerList []*discord.ApplicationCommand, targetServerId s
 
 func Run() {
 	var err error
-
 	bot, err = discord.New("Bot " + os.Getenv("DISCORDBOT_TOKEN"))
 	if err != nil {
 		log.Fatal("Error creating Discord session. " + err.Error())

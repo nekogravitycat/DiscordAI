@@ -37,6 +37,7 @@ func init() {
 	config.LoadConfig()
 	userdata.LoadUserData()
 	pricing.LoadPricingTable()
+	chatbot.NewOpenaiClient()
 	chatbot.LoadGptChannels()
 }
 

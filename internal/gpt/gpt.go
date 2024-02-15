@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/liuzl/gocc"
@@ -14,14 +13,14 @@ import (
 )
 
 type GPT struct {
-	client    openai.Client
+	client    *openai.Client
 	SysPrompt string `json:"sys-prompt"`
 	history   []openai.ChatCompletionMessage
 }
 
-func NewGPT() GPT {
+func NewGPT(client *openai.Client) GPT {
 	gpt := GPT{
-		client:    *openai.NewClient(os.Getenv("OPENAI_TOKEN")),
+		client:    client,
 		SysPrompt: "You have a great sense of humor and are an independent thinker who likes to chat.",
 		history:   []openai.ChatCompletionMessage{},
 	}
