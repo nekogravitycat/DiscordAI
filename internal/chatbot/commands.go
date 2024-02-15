@@ -10,255 +10,253 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-var (
-	regularCommands = []*discord.ApplicationCommand{
-		{
-			Name:        "activate-gpt",
-			Description: "Start ChatGPT on this channel",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "開始在此頻道使用 ChatGPT",
+var regularCommands = []*discord.ApplicationCommand{
+	{
+		Name:        "activate-gpt",
+		Description: "Start ChatGPT on this channel",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "開始在此頻道使用 ChatGPT",
+		},
+	},
+	{
+		Name:        "deactivate-gpt",
+		Description: "Stop ChatGPT on this channel",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "停止在此頻道使用 ChatGPT",
+		},
+	},
+	{
+		Name:        "credits",
+		Description: "Check user credits",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "查看用戶使用額度",
+		},
+	},
+	{
+		Name:        "gpt-sys-prompt",
+		Description: "Show GPT system prompt for this channel",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "查看此頻道的 GPT 系統設定",
+		},
+	},
+	{
+		Name:        "set-gpt-sys-prompt",
+		Description: "Set GPT system prompt for this channel",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "更改此頻道的 GPT 系統設定",
+		},
+		Options: []*discord.ApplicationCommandOption{
+			{
+				Name:        "sys-prompt",
+				Description: "The system prompt of GPT",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
 			},
 		},
-		{
-			Name:        "deactivate-gpt",
-			Description: "Stop ChatGPT on this channel",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "停止在此頻道使用 ChatGPT",
-			},
+	},
+	{
+		Name:        "reset-gpt-sys-prompt",
+		Description: "Reset GPT system prompt for this channel to default",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "還原此頻道的 GPT 系統設定至預設值",
 		},
-		{
-			Name:        "credits",
-			Description: "Check user credits",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "查看用戶使用額度",
-			},
+	},
+	{
+		Name:        "set-gpt-model",
+		Description: "Set the GPT model for the user",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "設定用戶使用的 GPT 模型",
 		},
-		{
-			Name:        "gpt-sys-prompt",
-			Description: "Show GPT system prompt for this channel",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "查看此頻道的 GPT 系統設定",
-			},
-		},
-		{
-			Name:        "set-gpt-sys-prompt",
-			Description: "Set GPT system prompt for this channel",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "更改此頻道的 GPT 系統設定",
-			},
-			Options: []*discord.ApplicationCommandOption{
-				{
-					Type:        discord.ApplicationCommandOptionString,
-					Name:        "sys-prompt",
-					Description: "The system prompt of GPT",
-					Required:    true,
-				},
-			},
-		},
-		{
-			Name:        "reset-gpt-sys-prompt",
-			Description: "Reset GPT system prompt for this channel to default",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "還原此頻道的 GPT 系統設定至預設值",
-			},
-		},
-		{
-			Name:        "set-gpt-model",
-			Description: "Set the GPT model for the user",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "設定用戶使用的 GPT 模型",
-			},
-			Options: []*discord.ApplicationCommandOption{
-				{
-					Name:        "model",
-					Description: "The GPT model to use",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-					Choices: []*discord.ApplicationCommandOptionChoice{
-						{
-							Name:  "GPT-3.5 Turbo",
-							Value: openai.GPT3Dot5Turbo,
-						},
-						{
-							Name:  "GPT-4 Turbo Preview",
-							Value: openai.GPT4TurboPreview,
-						},
-						{
-							Name:  "GPT-4 Vision Preview",
-							Value: openai.GPT4VisionPreview,
-						},
+		Options: []*discord.ApplicationCommandOption{
+			{
+				Name:        "model",
+				Description: "The GPT model to use",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
+				Choices: []*discord.ApplicationCommandOptionChoice{
+					{
+						Name:  "GPT-3.5 Turbo",
+						Value: openai.GPT3Dot5Turbo,
+					},
+					{
+						Name:  "GPT-4 Turbo Preview",
+						Value: openai.GPT4TurboPreview,
+					},
+					{
+						Name:  "GPT-4 Vision Preview",
+						Value: openai.GPT4VisionPreview,
 					},
 				},
 			},
 		},
-		{
-			Name:        "clear-gpt-history",
-			Description: "Clear GPT chat history for this channel",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "清除此頻道的 GPT 聊天歷史",
-			},
+	},
+	{
+		Name:        "clear-gpt-history",
+		Description: "Clear GPT chat history for this channel",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "清除此頻道的 GPT 聊天歷史",
 		},
-		{
-			Name:        "dall-e-2-generate",
-			Description: "Generate an image using DALL·E 2",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "使用 DALL·E 2 生成圖片",
-			},
-			Options: []*discord.ApplicationCommandOption{
-				{
-					Name:        "prompt",
-					Description: "Prompt for image generation",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-				},
-				{
-					Name:        "size",
-					Description: "Image size to generate",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-					Choices: []*discord.ApplicationCommandOptionChoice{
-						{
-							Name:  "256x256",
-							Value: openai.CreateImageSize256x256,
-						},
-						{
-							Name:  "512x512",
-							Value: openai.CreateImageSize512x512,
-						},
-						{
-							Name:  "1024x1024",
-							Value: openai.CreateImageSize1024x1024,
-						},
-					},
-				},
-			},
+	},
+	{
+		Name:        "dall-e-2-generate",
+		Description: "Generate an image using DALL·E 2",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "使用 DALL·E 2 生成圖片",
 		},
-		{
-			Name:        "dall-e-3-generate",
-			Description: "Generate an image using DALL·E 3",
-			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseTW: "使用 DALL·E 3 生成圖片",
+		Options: []*discord.ApplicationCommandOption{
+			{
+				Name:        "prompt",
+				Description: "Prompt for image generation",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
 			},
-			Options: []*discord.ApplicationCommandOption{
-				{
-					Name:        "prompt",
-					Description: "Prompt for image generation",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-				},
-				{
-					Name:        "size",
-					Description: "Image size to generate",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-					Choices: []*discord.ApplicationCommandOptionChoice{
-						{
-							Name:  "1024x1024",
-							Value: openai.CreateImageSize1024x1024,
-						},
-						{
-							Name:  "1024x1792",
-							Value: openai.CreateImageSize1024x1792,
-						},
-						{
-							Name:  "1792x1024",
-							Value: openai.CreateImageSize1024x1792,
-						},
+			{
+				Name:        "size",
+				Description: "Image size to generate",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
+				Choices: []*discord.ApplicationCommandOptionChoice{
+					{
+						Name:  "256x256",
+						Value: openai.CreateImageSize256x256,
 					},
-				},
-				{
-					Name:        "quality",
-					Description: "Image quality to generate",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-					Choices: []*discord.ApplicationCommandOptionChoice{
-						{
-							Name:  "SD",
-							Value: openai.CreateImageQualityStandard,
-						},
-						{
-							Name:  "HD",
-							Value: openai.CreateImageQualityHD,
-						},
+					{
+						Name:  "512x512",
+						Value: openai.CreateImageSize512x512,
 					},
-				},
-				{
-					Name:        "style",
-					Description: "Image style to generate",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-					Choices: []*discord.ApplicationCommandOptionChoice{
-						{
-							Name:  "vivid",
-							Value: openai.CreateImageStyleVivid,
-						},
-						{
-							Name:  "natural",
-							Value: openai.CreateImageStyleNatural,
-						},
+					{
+						Name:  "1024x1024",
+						Value: openai.CreateImageSize1024x1024,
 					},
 				},
 			},
 		},
-	}
+	},
+	{
+		Name:        "dall-e-3-generate",
+		Description: "Generate an image using DALL·E 3",
+		DescriptionLocalizations: &map[discord.Locale]string{
+			discord.ChineseTW: "使用 DALL·E 3 生成圖片",
+		},
+		Options: []*discord.ApplicationCommandOption{
+			{
+				Name:        "prompt",
+				Description: "Prompt for image generation",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
+			},
+			{
+				Name:        "size",
+				Description: "Image size to generate",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
+				Choices: []*discord.ApplicationCommandOptionChoice{
+					{
+						Name:  "1024x1024",
+						Value: openai.CreateImageSize1024x1024,
+					},
+					{
+						Name:  "1024x1792",
+						Value: openai.CreateImageSize1024x1792,
+					},
+					{
+						Name:  "1792x1024",
+						Value: openai.CreateImageSize1024x1792,
+					},
+				},
+			},
+			{
+				Name:        "quality",
+				Description: "Image quality to generate",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
+				Choices: []*discord.ApplicationCommandOptionChoice{
+					{
+						Name:  "SD",
+						Value: openai.CreateImageQualityStandard,
+					},
+					{
+						Name:  "HD",
+						Value: openai.CreateImageQualityHD,
+					},
+				},
+			},
+			{
+				Name:        "style",
+				Description: "Image style to generate",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
+				Choices: []*discord.ApplicationCommandOptionChoice{
+					{
+						Name:  "vivid",
+						Value: openai.CreateImageStyleVivid,
+					},
+					{
+						Name:  "natural",
+						Value: openai.CreateImageStyleNatural,
+					},
+				},
+			},
+		},
+	},
+}
 
-	adminCommands = []*discord.ApplicationCommand{
-		{
-			Name:        "add-credits",
-			Description: "Add credits for a user",
-			Options: []*discord.ApplicationCommandOption{
-				{
-					Name:        "user-id",
-					Type:        discord.ApplicationCommandOptionString,
-					Description: "User ID",
-					Required:    true,
-				},
-				{
-					Name:        "amount",
-					Type:        discord.ApplicationCommandOptionNumber,
-					Description: "Amount to add (in USD)",
-					Required:    true,
-				},
+var adminCommands = []*discord.ApplicationCommand{
+	{
+		Name:        "add-credits",
+		Description: "Add credits for a user",
+		Options: []*discord.ApplicationCommandOption{
+			{
+				Name:        "user-id",
+				Description: "User ID",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
+			},
+			{
+				Name:        "amount",
+				Description: "Amount to add (in USD)",
+				Type:        discord.ApplicationCommandOptionNumber,
+				Required:    true,
 			},
 		},
-		{
-			Name:        "set-user-privilege",
-			Description: "Set privilege level for the user",
-			Options: []*discord.ApplicationCommandOption{
-				{
-					Name:        "user-id",
-					Description: "User ID",
-					Type:        discord.ApplicationCommandOptionString,
-					Required:    true,
-				},
-				{
-					Name:        "privilege-level",
-					Type:        discord.ApplicationCommandOptionString,
-					Description: "Privilege level",
-					Required:    true,
-				},
+	},
+	{
+		Name:        "set-user-privilege",
+		Description: "Set privilege level for the user",
+		Options: []*discord.ApplicationCommandOption{
+			{
+				Name:        "user-id",
+				Description: "User ID",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
+			},
+			{
+				Name:        "privilege-level",
+				Description: "Privilege level",
+				Type:        discord.ApplicationCommandOptionString,
+				Required:    true,
 			},
 		},
-	}
+	},
+}
 
-	commandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
-		"activate-gpt":         activateGPT,
-		"deactivate-gpt":       deactivateGPT,
-		"credits":              credits,
-		"gpt-sys-prompt":       showGptSysPrompt,
-		"set-gpt-sys-prompt":   setGptSysPrompt,
-		"reset-gpt-sys-prompt": resetGptSysPrompt,
-		"set-gpt-model":        setGptModel,
-		"clear-gpt-history":    clearGptHistory,
-		"dall-e-2-generate":    dalle2Generate,
-		"dall-e-3-generate":    dalle3Generate,
-	}
+var commandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
+	"activate-gpt":         activateGPT,
+	"deactivate-gpt":       deactivateGPT,
+	"credits":              credits,
+	"gpt-sys-prompt":       showGptSysPrompt,
+	"set-gpt-sys-prompt":   setGptSysPrompt,
+	"reset-gpt-sys-prompt": resetGptSysPrompt,
+	"set-gpt-model":        setGptModel,
+	"clear-gpt-history":    clearGptHistory,
+	"dall-e-2-generate":    dalle2Generate,
+	"dall-e-3-generate":    dalle3Generate,
+}
 
-	adminCommandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
-		"add-credits":        addCredit,
-		"set-user-privilege": setPrivilege,
-	}
-)
+var adminCommandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
+	"add-credits":        addCredit,
+	"set-user-privilege": setPrivilege,
+}
 
 func mapInteractionOptions(options []*discord.ApplicationCommandInteractionDataOption) map[string]*discord.ApplicationCommandInteractionDataOption {
 	optionMap := make(map[string]*discord.ApplicationCommandInteractionDataOption, len(options))
@@ -270,7 +268,7 @@ func mapInteractionOptions(options []*discord.ApplicationCommandInteractionDataO
 
 func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
 	if isActiveGptChannel(i.ChannelID) {
-		interactionRespondEphemeral(s, i, "Already in chat")
+		interactionRespondEphemeral(s, i, "Channel already activated")
 		return
 	}
 
@@ -281,7 +279,7 @@ func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
 
 func deactivateGPT(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
-		interactionRespondEphemeral(s, i, "Not in channel")
+		interactionRespondEphemeral(s, i, "Channel is not active")
 		return
 	}
 

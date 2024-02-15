@@ -72,7 +72,16 @@ func dalleReply(s *discord.Session, i *discord.InteractionCreate, model string) 
 	fmt.Printf("Model: %s, User: %s\n", model, i.Member.User.ID)
 
 	interactionRespond(s, i, fmt.Sprintf("Your image is being generated, please wait...\n```Model: %s, Size: %s, Quality: %s, Style: %s\nPrompt: %s```", model, size, quality, style, prompt))
-	result, err := dalle.Generate(openaiClient, model, prompt, size, quality, style, i.Member.User.ID)
+	request := dalle.RequestFormat{
+		Client:  openaiClient,
+		Model:   model,
+		Prompt:  prompt,
+		Size:    size,
+		Quality: quality,
+		Style:   style,
+		User:    i.Member.User.ID,
+	}
+	result, err := dalle.Generate(request)
 	if err != nil {
 		messageReplyEmbedImage(s, i.ChannelID, "Something went wrong", err.Error(), result)
 		return

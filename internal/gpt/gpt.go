@@ -103,7 +103,6 @@ func (g *GPT) downgradeHistoryImages() {
 var s2t, _ = gocc.New("s2tw")
 
 func (g *GPT) Generate(model string, user string) (reply string, usage openai.Usage, err error) {
-
 	if len(g.history) <= 0 {
 		return "", openai.Usage{}, errors.New("empty history")
 	}

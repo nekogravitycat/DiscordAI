@@ -6,19 +6,29 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-func Generate(client *openai.Client, model string, prompt string, size string, quality string, style string, user string) (url string, err error) {
+type RequestFormat struct {
+	Client  *openai.Client
+	Model   string
+	Prompt  string
+	Size    string
+	Quality string
+	Style   string
+	User    string
+}
+
+func Generate(input RequestFormat) (url string, err error) {
 	request := openai.ImageRequest{
-		Model:          model,
-		Prompt:         prompt,
-		Size:           size,
-		Quality:        quality,
-		Style:          style,
+		Model:          input.Model,
+		Prompt:         input.Prompt,
+		Size:           input.Size,
+		Quality:        input.Quality,
+		Style:          input.Style,
 		N:              1,
 		ResponseFormat: openai.CreateImageResponseFormatURL,
-		User:           user,
+		User:           input.User,
 	}
 
-	response, err := client.CreateImage(context.Background(), request)
+	response, err := input.Client.CreateImage(context.Background(), request)
 	if err != nil {
 		return "https://t.gravitycat.tw/errorimg", err
 	}
