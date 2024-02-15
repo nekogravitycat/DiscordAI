@@ -6,6 +6,7 @@ import (
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/nekogravitycat/DiscordAI/internal/config"
 	"github.com/nekogravitycat/DiscordAI/internal/userdata"
+	"github.com/sashabaranov/go-openai"
 )
 
 var (
@@ -74,16 +75,16 @@ var (
 					Required:    true,
 					Choices: []*discord.ApplicationCommandOptionChoice{
 						{
-							Name:  "gpt-3.5-turbo",
-							Value: "gpt-3.5-turbo",
+							Name:  "GPT-3.5 Turbo",
+							Value: openai.GPT3Dot5Turbo,
 						},
 						{
-							Name:  "gpt-4-turbo-preview",
-							Value: "gpt-4-turbo-preview",
+							Name:  "GPT-4 Turbo Preview",
+							Value: openai.GPT4TurboPreview,
 						},
 						{
-							Name:  "gpt-4-vision-preview",
-							Value: "gpt-4-vision-preview",
+							Name:  "GPT-4 Vision Preview",
+							Value: openai.GPT4VisionPreview,
 						},
 					},
 				},
@@ -94,6 +95,108 @@ var (
 			Description: "Clear GPT chat history for this channel",
 			DescriptionLocalizations: &map[discord.Locale]string{
 				discord.ChineseTW: "清除此頻道的 GPT 聊天歷史",
+			},
+		},
+		{
+			Name:        "dall-e-2-generate",
+			Description: "Generate an image using DALL·E 2",
+			DescriptionLocalizations: &map[discord.Locale]string{
+				discord.ChineseTW: "使用 DALL·E 2 生成圖片",
+			},
+			Options: []*discord.ApplicationCommandOption{
+				{
+					Name:        "prompt",
+					Description: "Prompt for image generation",
+					Type:        discord.ApplicationCommandOptionString,
+					Required:    true,
+				},
+				{
+					Name:        "size",
+					Description: "Image size to generate",
+					Type:        discord.ApplicationCommandOptionString,
+					Required:    true,
+					Choices: []*discord.ApplicationCommandOptionChoice{
+						{
+							Name:  "256x256",
+							Value: openai.CreateImageSize256x256,
+						},
+						{
+							Name:  "512x512",
+							Value: openai.CreateImageSize512x512,
+						},
+						{
+							Name:  "1024x1024",
+							Value: openai.CreateImageSize1024x1024,
+						},
+					},
+				},
+			},
+		},
+		{
+			Name:        "dall-e-3-generate",
+			Description: "Generate an image using DALL·E 3",
+			DescriptionLocalizations: &map[discord.Locale]string{
+				discord.ChineseTW: "使用 DALL·E 3 生成圖片",
+			},
+			Options: []*discord.ApplicationCommandOption{
+				{
+					Name:        "prompt",
+					Description: "Prompt for image generation",
+					Type:        discord.ApplicationCommandOptionString,
+					Required:    true,
+				},
+				{
+					Name:        "size",
+					Description: "Image size to generate",
+					Type:        discord.ApplicationCommandOptionString,
+					Required:    true,
+					Choices: []*discord.ApplicationCommandOptionChoice{
+						{
+							Name:  "1024x1024",
+							Value: openai.CreateImageSize1024x1024,
+						},
+						{
+							Name:  "1024x1792",
+							Value: openai.CreateImageSize1024x1792,
+						},
+						{
+							Name:  "1792x1024",
+							Value: openai.CreateImageSize1024x1792,
+						},
+					},
+				},
+				{
+					Name:        "quality",
+					Description: "Image quality to generate",
+					Type:        discord.ApplicationCommandOptionString,
+					Required:    true,
+					Choices: []*discord.ApplicationCommandOptionChoice{
+						{
+							Name:  "SD",
+							Value: openai.CreateImageQualityStandard,
+						},
+						{
+							Name:  "HD",
+							Value: openai.CreateImageQualityHD,
+						},
+					},
+				},
+				{
+					Name:        "style",
+					Description: "Image style to generate",
+					Type:        discord.ApplicationCommandOptionString,
+					Required:    true,
+					Choices: []*discord.ApplicationCommandOptionChoice{
+						{
+							Name:  "vivid",
+							Value: openai.CreateImageStyleVivid,
+						},
+						{
+							Name:  "natural",
+							Value: openai.CreateImageStyleNatural,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -146,6 +249,8 @@ var (
 		"reset-gpt-sys-prompt": resetGptSysPrompt,
 		"set-gpt-model":        setGptModel,
 		"clear-gpt-history":    clearGptHistory,
+		"dall-e-2-generate":    dalle2Generate,
+		"dall-e-3-generate":    dalle3Generate,
 	}
 
 	adminCommandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
@@ -220,9 +325,9 @@ func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 		interactionRespond(s, i, "Invaild input for system prompt.")
 		return
 	}
-
 	prompt := inputPrompt.StringValue()
 	activeGptChannels[i.ChannelID].GPT.SysPrompt = prompt
+
 	saveGptChannels()
 	interactionRespond(s, i, fmt.Sprintf("System prompt updated:\n```%s```", prompt))
 }
@@ -360,4 +465,12 @@ func setPrivilege(s *discord.Session, i *discord.InteractionCreate) {
 	userdata.SetUser(userId, user)
 	userdata.SaveUserData()
 	interactionRespondEphemeral(s, i, fmt.Sprintf("User (`%s`) privilege level updated: `%s`", userId, user.PrivilegeLevel))
+}
+
+func dalle2Generate(s *discord.Session, i *discord.InteractionCreate) {
+	dalleReply(s, i, openai.CreateImageModelDallE2)
+}
+
+func dalle3Generate(s *discord.Session, i *discord.InteractionCreate) {
+	dalleReply(s, i, openai.CreateImageModelDallE3)
 }

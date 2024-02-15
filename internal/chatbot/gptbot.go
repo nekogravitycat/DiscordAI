@@ -32,7 +32,7 @@ func gptReply(s *discord.Session, m *discord.MessageCreate) {
 	}
 
 	if gpt.CountToken(m.Content, user.Model) > config.GPT.Limits.PromptTokens {
-		messageReply(s, m, "Prompt too long")
+		messageReply(s, m.Message, "Prompt too long")
 		return
 	}
 
@@ -71,10 +71,10 @@ func (c *gptChannel) replyNext() {
 		user, _ := userdata.GetUser(m.Author.ID)
 
 		if user.Credit <= 0 {
-			messageReply(bot, m, "Not enough credits.")
+			messageReply(bot, m.Message, "Not enough credits.")
 
 		} else if !user.HasModelPrivilege(user.Model) {
-			messageReply(bot, m, modelPermissionDeniedMessage)
+			messageReply(bot, m.Message, modelPermissionDeniedMessage)
 
 		} else {
 			bot.ChannelTyping(m.ChannelID)
@@ -83,11 +83,11 @@ func (c *gptChannel) replyNext() {
 
 			// Segment the reply if its longer than 2000 characters
 			for len(reply) > 2000 {
-				messageReply(bot, m, reply[:2000])
+				messageReply(bot, m.Message, reply[:2000])
 				reply = reply[2000:]
 			}
 
-			messageReply(bot, m, reply)
+			messageReply(bot, m.Message, reply)
 			fmt.Printf("Usage: %d (`$%f USD`)\n", usage.TotalTokens, pricing.GetGPTCost(user.Model, usage))
 
 			// Update userdata to follow up possible simultaneous operations

@@ -88,6 +88,37 @@ func GetGPTCost(model string, usage openai.Usage) float32 {
 	}
 }
 
+func GetDalleCost(model string, size string, quality string) float32 {
+	if model == openai.CreateImageModelDallE3 {
+		if quality == "standard" {
+			if size == "1024x1024" {
+				return pricingData.DallE3.Standard.R1024X1024
+			} else if size == "1024x1792" {
+				return pricingData.DallE3.Standard.R1024X1792
+			} else if size == "1792x1024" {
+				return pricingData.DallE3.Standard.R1792X1024
+			}
+		} else if quality == "hd" {
+			if size == "1024x1024" {
+				return pricingData.DallE3.Hd.R1024X1024
+			} else if size == "1024x1792" {
+				return pricingData.DallE3.Hd.R1024X1792
+			} else if size == "1792x1024" {
+				return pricingData.DallE3.Hd.R1792X1024
+			}
+		}
+	} else if model == openai.CreateImageModelDallE2 {
+		if size == "1024x1024" {
+			return pricingData.DallE2.R1024X1024
+		} else if size == "512x512" {
+			return pricingData.DallE2.R512X512
+		} else if size == "256x256" {
+			return pricingData.DallE2.R256X256
+		}
+	}
+	return pricingData.DallE3.Hd.R1024X1792
+}
+
 const PRICINGFILE = "./configs/pricing.json"
 
 func LoadPricingTable() {

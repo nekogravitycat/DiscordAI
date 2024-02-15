@@ -4,20 +4,22 @@ import (
 	discord "github.com/bwmarrin/discordgo"
 )
 
-func messageReply(session *discord.Session, messageCreate *discord.MessageCreate, content string) (*discord.Message, error) {
-	return session.ChannelMessageSendReply(messageCreate.ChannelID, content, messageCreate.Reference())
+func messageReply(session *discord.Session, message *discord.Message, content string) (*discord.Message, error) {
+	return session.ChannelMessageSendReply(message.ChannelID, content, message.Reference())
 }
 
-func messageReplyEmbedImage(session *discord.Session, messageCreate *discord.MessageCreate, url string) (*discord.Message, error) {
+func messageReplyEmbedImage(session *discord.Session, channelID string, title string, description string, url string) (*discord.Message, error) {
 	embed := discord.MessageEmbed{
-		URL:  url,
-		Type: discord.EmbedTypeImage,
+		Title:       title,
+		Description: description,
+		URL:         url,
+		Type:        discord.EmbedTypeImage,
 		Image: &discord.MessageEmbedImage{
 			URL: url,
 		},
 	}
 
-	return session.ChannelMessageSendEmbedReply(messageCreate.ChannelID, &embed, messageCreate.Reference())
+	return session.ChannelMessageSendEmbed(channelID, &embed)
 }
 
 func interactionRespond(session *discord.Session, interactionCreate *discord.InteractionCreate, content string) error {
