@@ -4,27 +4,24 @@ A Discord bot powered by artificial intelligence, rebuilt in Go from [DiscordGPT
 
 ## Commands
 
-### Regular User Commands
-- **/activate-gpt**: Start ChatGPT on the current channel.
-- **/deactivate-gpt**: Stop ChatGPT on the current channel.
-- **/credits**: Check your remaining credits.
-- **/add-gpt-image**: Add an image URL for GPT Vision to analyze.
-  - `image-url`: The URL of the image (required).
-- **/gpt-sys-prompt**: View the current GPT system prompt for this channel.
-- **/set-gpt-sys-prompt**: Set the GPT system prompt for this channel.
-  - `sys-prompt`: The system prompt of GPT (required).
-- **/reset-gpt-sys-prompt**: Reset the GPT system prompt for this channel to default.
-- **/set-gpt-model**: Set the GPT model for your usage.
-  - `model`: The GPT model to use (required). Available options: `gpt-3.5-turbo`, `gpt-4-turbo-preview`, `gpt-4-vision-preview`.
-- **/clear-gpt-history**: Clear the GPT chat history for this channel.
+### Regular Commands
 
-### Admin Commands
-- **/add-credits**: Add credits for a user.
-  - `user-id`: User ID (required).
-  - `amount`: Amount to add (in USD) (required).
-- **/set-user-privilege**: Set privilege level for a user.
-  - `user-id`: User ID (required).
-  - `privilege-level`: Privilege level (required).
+- `/gpt activate`: Start ChatGPT on this channel.
+- `/gpt deactivate`: Stop ChatGPT on this channel.
+- `/gpt set-model`: Set the GPT model for the user.
+- `/gpt clear-history`: Clear GPT chat history for this channel.
+- `/gpt sys-prompt show`: Show GPT system prompt for this channel.
+- `/gpt sys-prompt set`: Set GPT system prompt for this channel.
+- `/gpt sys-prompt reset`: Reset GPT system prompt for this channel to default.
+- `/credits`: Check user credits.
+- `/dall-e-2-generate`: Generate an image using DALL·E 2.
+- `/dall-e-3-generate`: Generate an image using DALL·E 3.
+
+## Admin Commands
+
+- `/add-credits`: Add credits for a user.
+- `/set-user-privilege`: Set privilege level for the user.
+
 
 ## Environment Variables
 
