@@ -12,17 +12,102 @@ import (
 
 var regularCommands = []*discord.ApplicationCommand{
 	{
-		Name:        "activate-gpt",
-		Description: "Start ChatGPT on this channel",
-		DescriptionLocalizations: &map[discord.Locale]string{
-			discord.ChineseTW: "開始在此頻道使用 ChatGPT",
-		},
-	},
-	{
-		Name:        "deactivate-gpt",
-		Description: "Stop ChatGPT on this channel",
-		DescriptionLocalizations: &map[discord.Locale]string{
-			discord.ChineseTW: "停止在此頻道使用 ChatGPT",
+		Name:        "gpt",
+		Description: "Commands for GPT",
+		Options: []*discord.ApplicationCommandOption{
+			{
+				Name:        "activate",
+				Description: "Start ChatGPT on this channel",
+				DescriptionLocalizations: map[discord.Locale]string{
+					discord.ChineseTW: "開始在此頻道使用 ChatGPT",
+				},
+				Type: discord.ApplicationCommandOptionSubCommand,
+			},
+			{
+				Name:        "deactivate",
+				Description: "Stop ChatGPT on this channel",
+				DescriptionLocalizations: map[discord.Locale]string{
+					discord.ChineseTW: "停止在此頻道使用 ChatGPT",
+				},
+				Type: discord.ApplicationCommandOptionSubCommand,
+			},
+			{
+				Name:        "set-model",
+				Description: "Set the GPT model for the user",
+				DescriptionLocalizations: map[discord.Locale]string{
+					discord.ChineseTW: "設定用戶使用的 GPT 模型",
+				},
+				Type: discord.ApplicationCommandOptionSubCommand,
+				Options: []*discord.ApplicationCommandOption{
+					{
+						Name:        "model",
+						Description: "The GPT model to use",
+						Type:        discord.ApplicationCommandOptionString,
+						Required:    true,
+						Choices: []*discord.ApplicationCommandOptionChoice{
+							{
+								Name:  "GPT-3.5 Turbo",
+								Value: openai.GPT3Dot5Turbo,
+							},
+							{
+								Name:  "GPT-4 Turbo Preview",
+								Value: openai.GPT4TurboPreview,
+							},
+							{
+								Name:  "GPT-4 Vision Preview",
+								Value: openai.GPT4VisionPreview,
+							},
+						},
+					},
+				},
+			},
+			{
+				Name:        "clear-history",
+				Description: "Clear GPT chat history for this channel",
+				DescriptionLocalizations: map[discord.Locale]string{
+					discord.ChineseTW: "清除此頻道的 GPT 聊天歷史",
+				},
+				Type: discord.ApplicationCommandOptionSubCommand,
+			},
+			{
+				Name:        "sys-prompt",
+				Description: "Commands for the system prompt of GPT",
+				Type:        discord.ApplicationCommandOptionSubCommandGroup,
+				Options: []*discord.ApplicationCommandOption{
+					{
+						Name:        "show",
+						Description: "Show GPT system prompt for this channel",
+						DescriptionLocalizations: map[discord.Locale]string{
+							discord.ChineseTW: "查看此頻道的 GPT 系統設定",
+						},
+						Type: discord.ApplicationCommandOptionSubCommand,
+					},
+					{
+						Name:        "set",
+						Description: "Set GPT system prompt for this channel",
+						DescriptionLocalizations: map[discord.Locale]string{
+							discord.ChineseTW: "更改此頻道的 GPT 系統設定",
+						},
+						Type: discord.ApplicationCommandOptionSubCommand,
+						Options: []*discord.ApplicationCommandOption{
+							{
+								Name:        "sys-prompt",
+								Description: "The system prompt of GPT",
+								Type:        discord.ApplicationCommandOptionString,
+								Required:    true,
+							},
+						},
+					},
+					{
+						Name:        "reset",
+						Description: "Reset GPT system prompt for this channel to default",
+						DescriptionLocalizations: map[discord.Locale]string{
+							discord.ChineseTW: "還原此頻道的 GPT 系統設定至預設值",
+						},
+						Type: discord.ApplicationCommandOptionSubCommand,
+					},
+				},
+			},
 		},
 	},
 	{
@@ -32,71 +117,7 @@ var regularCommands = []*discord.ApplicationCommand{
 			discord.ChineseTW: "查看用戶使用額度",
 		},
 	},
-	{
-		Name:        "gpt-sys-prompt",
-		Description: "Show GPT system prompt for this channel",
-		DescriptionLocalizations: &map[discord.Locale]string{
-			discord.ChineseTW: "查看此頻道的 GPT 系統設定",
-		},
-	},
-	{
-		Name:        "set-gpt-sys-prompt",
-		Description: "Set GPT system prompt for this channel",
-		DescriptionLocalizations: &map[discord.Locale]string{
-			discord.ChineseTW: "更改此頻道的 GPT 系統設定",
-		},
-		Options: []*discord.ApplicationCommandOption{
-			{
-				Name:        "sys-prompt",
-				Description: "The system prompt of GPT",
-				Type:        discord.ApplicationCommandOptionString,
-				Required:    true,
-			},
-		},
-	},
-	{
-		Name:        "reset-gpt-sys-prompt",
-		Description: "Reset GPT system prompt for this channel to default",
-		DescriptionLocalizations: &map[discord.Locale]string{
-			discord.ChineseTW: "還原此頻道的 GPT 系統設定至預設值",
-		},
-	},
-	{
-		Name:        "set-gpt-model",
-		Description: "Set the GPT model for the user",
-		DescriptionLocalizations: &map[discord.Locale]string{
-			discord.ChineseTW: "設定用戶使用的 GPT 模型",
-		},
-		Options: []*discord.ApplicationCommandOption{
-			{
-				Name:        "model",
-				Description: "The GPT model to use",
-				Type:        discord.ApplicationCommandOptionString,
-				Required:    true,
-				Choices: []*discord.ApplicationCommandOptionChoice{
-					{
-						Name:  "GPT-3.5 Turbo",
-						Value: openai.GPT3Dot5Turbo,
-					},
-					{
-						Name:  "GPT-4 Turbo Preview",
-						Value: openai.GPT4TurboPreview,
-					},
-					{
-						Name:  "GPT-4 Vision Preview",
-						Value: openai.GPT4VisionPreview,
-					},
-				},
-			},
-		},
-	},
-	{
-		Name:        "clear-gpt-history",
-		Description: "Clear GPT chat history for this channel",
-		DescriptionLocalizations: &map[discord.Locale]string{
-			discord.ChineseTW: "清除此頻道的 GPT 聊天歷史",
-		},
-	},
+
 	{
 		Name:        "dall-e-2-generate",
 		Description: "Generate an image using DALL·E 2",
@@ -241,16 +262,10 @@ var adminCommands = []*discord.ApplicationCommand{
 }
 
 var commandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
-	"activate-gpt":         activateGPT,
-	"deactivate-gpt":       deactivateGPT,
-	"credits":              credits,
-	"gpt-sys-prompt":       showGptSysPrompt,
-	"set-gpt-sys-prompt":   setGptSysPrompt,
-	"reset-gpt-sys-prompt": resetGptSysPrompt,
-	"set-gpt-model":        setGptModel,
-	"clear-gpt-history":    clearGptHistory,
-	"dall-e-2-generate":    dalle2Generate,
-	"dall-e-3-generate":    dalle3Generate,
+	"gpt":               gptGroup,
+	"credits":           credits,
+	"dall-e-2-generate": dalle2Generate,
+	"dall-e-3-generate": dalle3Generate,
 }
 
 var adminCommandHandlers = map[string]func(s *discord.Session, i *discord.InteractionCreate){
@@ -264,6 +279,32 @@ func mapInteractionOptions(options []*discord.ApplicationCommandInteractionDataO
 		optionMap[opt.Name] = opt
 	}
 	return optionMap
+}
+
+func gptGroup(s *discord.Session, i *discord.InteractionCreate) {
+	gptOptions := i.ApplicationCommandData().Options
+
+	switch gptOptions[0].Name {
+	case "activate":
+		activateGPT(s, i)
+	case "deactivate":
+		deactivateGPT(s, i)
+	case "set-model":
+		setGptModel(s, i)
+	case "clear-history":
+		clearGptHistory(s, i)
+	case "sys-prompt":
+		sysPromptOptions := gptOptions[0].Options
+		switch sysPromptOptions[0].Name {
+		case "show":
+			showGptSysPrompt(s, i)
+		case "set":
+			setGptSysPrompt(s, i)
+		case "reset":
+			resetGptSysPrompt(s, i)
+		}
+	}
+	interactionRespondEphemeral(s, i, "Unknown command")
 }
 
 func activateGPT(s *discord.Session, i *discord.InteractionCreate) {
@@ -288,19 +329,6 @@ func deactivateGPT(s *discord.Session, i *discord.InteractionCreate) {
 	saveGptChannels()
 }
 
-func credits(s *discord.Session, i *discord.InteractionCreate) {
-	user, ok := userdata.GetUser(i.Member.User.ID)
-	var credits float32 = 0
-
-	if ok {
-		credits = user.Credit
-	} else {
-		credits = config.InitCredits
-	}
-
-	interactionRespondEphemeral(s, i, fmt.Sprintf("Your credits: `$%.5f USD`", credits))
-}
-
 func showGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 	if !isActiveGptChannel(i.ChannelID) {
 		interactionRespondEphemeral(s, i, notActiveGptChannelMessage)
@@ -316,8 +344,10 @@ func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 		return
 	}
 
-	options := i.ApplicationCommandData().Options
+	options := i.ApplicationCommandData().Options[0].Options[0].Options
+	fmt.Println(options)
 	optionMap := mapInteractionOptions(options)
+	fmt.Println(optionMap)
 
 	inputPrompt, ok := optionMap["sys-prompt"]
 	if !ok {
@@ -349,7 +379,7 @@ func resetGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 }
 
 func setGptModel(s *discord.Session, i *discord.InteractionCreate) {
-	options := i.ApplicationCommandData().Options
+	options := i.ApplicationCommandData().Options[0].Options
 	optionMap := mapInteractionOptions(options)
 
 	inputModel, ok := optionMap["model"]
@@ -383,6 +413,19 @@ func clearGptHistory(s *discord.Session, i *discord.InteractionCreate) {
 
 	activeGptChannels[i.ChannelID].GPT.ClearHistory()
 	interactionRespond(s, i, "Chat history cleared.")
+}
+
+func credits(s *discord.Session, i *discord.InteractionCreate) {
+	user, ok := userdata.GetUser(i.Member.User.ID)
+	var credits float32 = 0
+
+	if ok {
+		credits = user.Credit
+	} else {
+		credits = config.InitCredits
+	}
+
+	interactionRespondEphemeral(s, i, fmt.Sprintf("Your credits: `$%.5f USD`", credits))
 }
 
 func dalle2Generate(s *discord.Session, i *discord.InteractionCreate) {
