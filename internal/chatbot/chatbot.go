@@ -46,6 +46,29 @@ func removeCommands(registerList []*discord.ApplicationCommand, targetServerId s
 	}
 }
 
+func removeRemoteCommands(s *discord.Session) {
+	servers := []string{""}
+	if len(config.AdminServers) > 0 {
+		servers = append(servers, config.AdminServers...)
+	}
+
+	for _, server := range servers {
+		cmds, err := s.ApplicationCommands(s.State.User.ID, server)
+		if err != nil {
+			log.Fatalf("Could not fetch registered commands for %v: %v", server, err)
+		}
+		for _, v := range cmds {
+			err := s.ApplicationCommandDelete(s.State.User.ID, server, v.ID)
+			if err != nil {
+				log.Panicf("Cannot delete '%v' command for %v: %v", v.Name, server, err)
+			} else {
+				fmt.Printf("delete '%s' command for %s\n", v.Name, server)
+			}
+		}
+	}
+
+}
+
 func Run() {
 	var err error
 	bot, err = discord.New("Bot " + os.Getenv("DISCORDBOT_TOKEN"))
@@ -61,13 +84,17 @@ func Run() {
 	}
 	defer bot.Close()
 
+	// Remove all remote commands
+	fmt.Println("Removing remote commands...")
+	removeRemoteCommands(bot)
+
+	// Regular commands
 	fmt.Println("Adding regular commands...")
 	bot.AddHandler(func(s *discord.Session, i *discord.InteractionCreate) {
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			handler(s, i)
 		}
 	})
-
 	if config.NoGlobalCommands {
 		fmt.Println("'no-global-commands' enabled, adding regular commands to admin servers.")
 		if len(config.AdminServers) > 0 {
@@ -80,11 +107,11 @@ func Run() {
 		} else {
 			fmt.Println("Empty admin server list, regular commands not registered.")
 		}
-
 	} else {
 		addCommands(&registeredRegularCommands, regularCommands, "")
 	}
 
+	// Admin commands
 	if len(config.AdminServers) > 0 {
 		fmt.Println("Adding admin commands...")
 		bot.AddHandler(func(s *discord.Session, i *discord.InteractionCreate) {
