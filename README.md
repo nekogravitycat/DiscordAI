@@ -50,7 +50,7 @@ To deploy DiscordAI using Docker, you can utilize the provided docker-compose fi
 
 4. Run the following command to start DiscordAI:
     ```bash
-    docker-compose up -d
+    docker compose up -d
     ```
 
 Please note that the docker-compose file mounts the `configs` and `data` directories to persist configuration and data between container restarts.
