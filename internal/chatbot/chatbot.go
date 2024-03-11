@@ -66,7 +66,6 @@ func removeRemoteCommands(s *discord.Session) {
 			}
 		}
 	}
-
 }
 
 func Run() {
