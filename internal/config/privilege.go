@@ -12,8 +12,7 @@ type privilegeConfig struct {
 var privilegeData = map[string]privilegeConfig{
 	"admin": {
 		Models: []string{
-			openai.GPT4TurboPreview,
-			openai.GPT4VisionPreview,
+			openai.GPT4o,
 			openai.GPT3Dot5Turbo,
 			openai.CreateImageModelDallE3,
 			openai.CreateImageModelDallE2,
@@ -29,15 +28,13 @@ var privilegeData = map[string]privilegeConfig{
 	},
 	"2": {
 		Models: []string{
-			openai.GPT4TurboPreview,
-			openai.GPT4VisionPreview,
+			openai.GPT4o,
 			openai.GPT3Dot5Turbo,
 		},
 	},
 	"3": {
 		Models: []string{
-			openai.GPT4TurboPreview,
-			openai.GPT4VisionPreview,
+			openai.GPT4o,
 			openai.GPT3Dot5Turbo,
 			openai.CreateImageModelDallE3,
 			openai.CreateImageModelDallE2,

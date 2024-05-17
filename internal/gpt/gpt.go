@@ -110,7 +110,7 @@ func (g *GPT) Generate(model string, user string) (reply string, usage openai.Us
 	g.trimOldHistory()
 
 	var history = []openai.ChatCompletionMessage{}
-	if model != openai.GPT4VisionPreview {
+	if model != openai.GPT4o {
 		history = append(history, historyWithoutImages(g.history)...)
 		fmt.Println("Images ignored due to model limitation.")
 	} else {

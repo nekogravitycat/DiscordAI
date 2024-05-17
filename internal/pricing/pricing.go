@@ -27,24 +27,19 @@ type dallE2Pricing struct {
 }
 
 type pricingTable struct {
-	Rate              float32       `json:"rate"`
-	Gpt4TurboPreview  gptRate       `json:"gpt-4-turbo-preview"`
-	Gpt4VisionPreview gptRate       `json:"gpt-4-vision-preview"`
-	Gpt3Dot5Turbo     gptRate       `json:"gpt-3.5-turbo"`
-	DallE3            dallE3Pricing `json:"dall-e-3"`
-	DallE2            dallE2Pricing `json:"dall-e-2"`
+	Rate          float32       `json:"rate"`
+	Gpt4o         gptRate       `json:"gpt-4o"`
+	Gpt3Dot5Turbo gptRate       `json:"gpt-3.5-turbo"`
+	DallE3        dallE3Pricing `json:"dall-e-3"`
+	DallE2        dallE2Pricing `json:"dall-e-2"`
 }
 
 func newPricingTable() pricingTable {
 	pt := pricingTable{
 		Rate: 1.2,
-		Gpt4TurboPreview: gptRate{
-			Input:  0.01,
-			Output: 0.03,
-		},
-		Gpt4VisionPreview: gptRate{
-			Input:  0.01,
-			Output: 0.03,
+		Gpt4o: gptRate{
+			Input:  0.005,
+			Output: 0.015,
 		},
 		Gpt3Dot5Turbo: gptRate{
 			Input:  0.0005,
@@ -76,18 +71,15 @@ var pricingData pricingTable = newPricingTable()
 func GetGPTCost(model string, usage openai.Usage) float32 {
 	var cost float32
 	switch model {
-	case openai.GPT4TurboPreview:
-		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt4TurboPreview.Input +
-			float32(usage.CompletionTokens)/1000*pricingData.Gpt4TurboPreview.Output
-	case openai.GPT4VisionPreview:
-		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt4VisionPreview.Input +
-			float32(usage.CompletionTokens)/1000*pricingData.Gpt4VisionPreview.Output
+	case openai.GPT4o:
+		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt4o.Input +
+			float32(usage.CompletionTokens)/1000*pricingData.Gpt4o.Output
 	case openai.GPT3Dot5Turbo:
 		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt3Dot5Turbo.Input +
 			float32(usage.CompletionTokens)/1000*pricingData.Gpt3Dot5Turbo.Output
 	default:
-		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt4TurboPreview.Input +
-			float32(usage.CompletionTokens)/1000*pricingData.Gpt4TurboPreview.Output
+		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt4o.Input +
+			float32(usage.CompletionTokens)/1000*pricingData.Gpt4o.Output
 	}
 	return cost * pricingData.Rate
 }

@@ -50,12 +50,8 @@ var regularCommands = []*discord.ApplicationCommand{
 								Value: openai.GPT3Dot5Turbo,
 							},
 							{
-								Name:  "GPT-4 Turbo Preview",
-								Value: openai.GPT4TurboPreview,
-							},
-							{
-								Name:  "GPT-4 Vision Preview",
-								Value: openai.GPT4VisionPreview,
+								Name:  "GPT-4o",
+								Value: openai.GPT4o,
 							},
 						},
 					},
