@@ -27,11 +27,11 @@ type dallE2Pricing struct {
 }
 
 type pricingTable struct {
-	Rate          float32       `json:"rate"`
-	Gpt4o         gptRate       `json:"gpt-4o"`
-	Gpt3Dot5Turbo gptRate       `json:"gpt-3.5-turbo"`
-	DallE3        dallE3Pricing `json:"dall-e-3"`
-	DallE2        dallE2Pricing `json:"dall-e-2"`
+	Rate      float32       `json:"rate"`
+	Gpt4o     gptRate       `json:"gpt-4o"`
+	Gpt4oMini gptRate       `json:"gpt-4o-mini"`
+	DallE3    dallE3Pricing `json:"dall-e-3"`
+	DallE2    dallE2Pricing `json:"dall-e-2"`
 }
 
 func newPricingTable() pricingTable {
@@ -41,9 +41,9 @@ func newPricingTable() pricingTable {
 			Input:  0.005,
 			Output: 0.015,
 		},
-		Gpt3Dot5Turbo: gptRate{
-			Input:  0.0005,
-			Output: 0.0015,
+		Gpt4oMini: gptRate{
+			Input:  0.00025,
+			Output: 0.0075,
 		},
 		DallE3: dallE3Pricing{
 			Standard: dallE3Resolutions{
@@ -74,9 +74,9 @@ func GetGPTCost(model string, usage openai.Usage) float32 {
 	case openai.GPT4o:
 		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt4o.Input +
 			float32(usage.CompletionTokens)/1000*pricingData.Gpt4o.Output
-	case openai.GPT3Dot5Turbo:
-		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt3Dot5Turbo.Input +
-			float32(usage.CompletionTokens)/1000*pricingData.Gpt3Dot5Turbo.Output
+	case openai.GPT4oMini:
+		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt4oMini.Input +
+			float32(usage.CompletionTokens)/1000*pricingData.Gpt4oMini.Output
 	default:
 		cost = float32(usage.PromptTokens)/1000*pricingData.Gpt4o.Input +
 			float32(usage.CompletionTokens)/1000*pricingData.Gpt4o.Output

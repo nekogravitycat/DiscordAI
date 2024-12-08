@@ -46,8 +46,8 @@ var regularCommands = []*discord.ApplicationCommand{
 						Required:    true,
 						Choices: []*discord.ApplicationCommandOptionChoice{
 							{
-								Name:  "GPT-3.5 Turbo",
-								Value: openai.GPT3Dot5Turbo,
+								Name:  "GPT-4o-Mini",
+								Value: openai.GPT4oMini,
 							},
 							{
 								Name:  "GPT-4o",
@@ -352,7 +352,7 @@ func setGptSysPrompt(s *discord.Session, i *discord.InteractionCreate) {
 	}
 
 	prompt := inputPrompt.StringValue()
-	if gpt.CountToken(prompt, openai.GPT3Dot5Turbo) > config.GPT.Limits.SysPromptTokens {
+	if gpt.CountToken(prompt, openai.GPT4oMini) > config.GPT.Limits.SysPromptTokens {
 		interactionRespondEphemeral(s, i, "System prompt is too long.")
 		return
 	}

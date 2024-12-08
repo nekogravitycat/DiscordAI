@@ -109,19 +109,11 @@ func (g *GPT) Generate(model string, user string) (reply string, usage openai.Us
 
 	g.trimOldHistory()
 
-	var history = []openai.ChatCompletionMessage{}
-	if model != openai.GPT4o {
-		history = append(history, historyWithoutImages(g.history)...)
-		fmt.Println("Images ignored due to model limitation.")
-	} else {
-		history = append(history, g.history...)
-	}
-
 	response, err := g.client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
 			Model:     model,
-			Messages:  append(g.sysPromptMsg(), history...),
+			Messages:  append(g.sysPromptMsg(), g.history...),
 			User:      user,
 			MaxTokens: config.GPT.Limits.ReplyTokens,
 		},
@@ -150,22 +142,6 @@ func (g *GPT) Generate(model string, user string) (reply string, usage openai.Us
 	g.downgradeHistoryImages()
 
 	return reply, usage, err
-}
-
-func historyWithoutImages(history []openai.ChatCompletionMessage) []openai.ChatCompletionMessage {
-	h := []openai.ChatCompletionMessage{}
-	for _, m := range history {
-		if m.MultiContent == nil {
-			h = append(h, m)
-		} else {
-			replacement := openai.ChatCompletionMessage{
-				Role:    openai.ChatMessageRoleUser,
-				Content: "[Image removed]",
-			}
-			h = append(h, replacement)
-		}
-	}
-	return h
 }
 
 func CountToken(prompt string, model string) int {

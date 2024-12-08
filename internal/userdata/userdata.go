@@ -17,7 +17,7 @@ type UserInfo struct {
 
 func NewUserInfo() UserInfo {
 	u := UserInfo{
-		Model:          openai.GPT3Dot5Turbo,
+		Model:          openai.GPT4oMini,
 		Credit:         config.InitCredits,
 		PrivilegeLevel: config.InitPrivilege,
 	}

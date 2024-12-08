@@ -13,7 +13,7 @@ var privilegeData = map[string]privilegeConfig{
 	"admin": {
 		Models: []string{
 			openai.GPT4o,
-			openai.GPT3Dot5Turbo,
+			openai.GPT4oMini,
 			openai.CreateImageModelDallE3,
 			openai.CreateImageModelDallE2,
 		},
@@ -23,19 +23,19 @@ var privilegeData = map[string]privilegeConfig{
 	},
 	"1": {
 		Models: []string{
-			openai.GPT3Dot5Turbo,
+			openai.GPT4oMini,
 		},
 	},
 	"2": {
 		Models: []string{
 			openai.GPT4o,
-			openai.GPT3Dot5Turbo,
+			openai.GPT4oMini,
 		},
 	},
 	"3": {
 		Models: []string{
 			openai.GPT4o,
-			openai.GPT3Dot5Turbo,
+			openai.GPT4oMini,
 			openai.CreateImageModelDallE3,
 			openai.CreateImageModelDallE2,
 		},
