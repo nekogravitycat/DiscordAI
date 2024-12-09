@@ -20,6 +20,7 @@ type dallE3Pricing struct {
 	Standard dallE3Resolutions `json:"standard"`
 	Hd       dallE3Resolutions `json:"hd"`
 }
+
 type dallE2Pricing struct {
 	R1024X1024 float32 `json:"r1024x1024"`
 	R512X512   float32 `json:"r512x512"`
